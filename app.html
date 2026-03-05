@@ -719,9 +719,24 @@ input::placeholder { color: var(--muted); opacity: 0.6; }
           <button class="copy-btn" onclick="openUrl('broadcast')">Abrir</button>
         </div>
         <div class="url-box">
-          <div class="url-label">OBS / RECEPTOR</div>
+          <div class="url-label">OBS · TELA</div>
           <div class="url-text" id="urlOBS">—</div>
           <button class="copy-btn" onclick="copyUrl('obs')">Copiar</button>
+        </div>
+        <div class="url-box">
+          <div class="url-label">OBS · CÂMERA</div>
+          <div class="url-text" id="urlOBSCam">—</div>
+          <button class="copy-btn" onclick="copyUrl('obsCam')">Copiar</button>
+        </div>
+        <div class="url-box" id="urlTunnelBox" style="display:none">
+          <div class="url-label">EXTERNO · TELA</div>
+          <div class="url-text" id="urlTunnel">—</div>
+          <button class="copy-btn" onclick="copyUrl('tunnel')">Copiar</button>
+        </div>
+        <div class="url-box" id="urlTunnelCamBox" style="display:none">
+          <div class="url-label">EXTERNO · CÂMERA</div>
+          <div class="url-text" id="urlTunnelCam">—</div>
+          <button class="copy-btn" onclick="copyUrl('tunnelCam')">Copiar</button>
         </div>
       </div>
 
@@ -1072,7 +1087,7 @@ function setTunnelActive(url) {
   document.getElementById('tunnelStatusText').textContent = 'Túnel ativo';
   document.getElementById('tunnelUrlText').textContent = url;
   document.getElementById('tunnelUrlBox').style.display = '';
-
+  updateURLs();
 }
 
 function setTunnelInactive() {
@@ -1084,6 +1099,7 @@ function setTunnelInactive() {
   document.getElementById('tunnelStartBtn').disabled = false;
   const btn = document.getElementById('tunnelStartBtn');
   btn.innerHTML = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg> Ligar Túnel';
+  updateURLs();
 }
 
 function copyTunnelUrl() {
@@ -1119,9 +1135,22 @@ function updateURLs() {
 
   document.getElementById('urlBroadcast').textContent   = broadcaster;
   document.getElementById('urlOBS').textContent         = obs;
+  document.getElementById('urlOBSCam').textContent      = obsCam;
   document.getElementById('obsUrlFull').textContent     = obs;
   document.getElementById('obsUrlCode').textContent     = obs;
   document.getElementById('obsCamUrlFull').textContent  = obsCam;
+
+  const tunnelBox    = document.getElementById('urlTunnelBox');
+  const tunnelCamBox = document.getElementById('urlTunnelCamBox');
+  if (activeTunnelUrl) {
+    const tunnelViewer    = `${activeTunnelUrl}/?obs=1&room=${encodeURIComponent(r)}${turn}`;
+    const tunnelCamViewer = `${activeTunnelUrl}/?obs=1&room=${encodeURIComponent(r)}-cam${turn}`;
+    if (tunnelBox)    { document.getElementById('urlTunnel').textContent    = tunnelViewer;    tunnelBox.style.display    = ''; }
+    if (tunnelCamBox) { document.getElementById('urlTunnelCam').textContent = tunnelCamViewer; tunnelCamBox.style.display = ''; }
+  } else {
+    if (tunnelBox)    tunnelBox.style.display    = 'none';
+    if (tunnelCamBox) tunnelCamBox.style.display = 'none';
+  }
 }
 
 function getRoomName() {
@@ -1303,20 +1332,20 @@ function copyOBSCamUrl() {
 // URL helpers
 // ─────────────────────────────────────────────────────────────────────────────
 function copyUrl(type) {
-  const el = type === 'obs'
-    ? document.getElementById('urlOBS')
-    : document.getElementById('urlBroadcast');
+  const idMap = { obs: 'urlOBS', obsCam: 'urlOBSCam', broadcast: 'urlBroadcast', tunnel: 'urlTunnel', tunnelCam: 'urlTunnelCam' };
+  const el = document.getElementById(idMap[type] || 'urlBroadcast');
   navigator.clipboard.writeText(el.textContent);
 
   // Find all copy buttons with this action and flash
   document.querySelectorAll('.copy-btn').forEach(b => {
-    if (b.getAttribute('onclick')?.includes(type)) {
+    if (b.getAttribute('onclick')?.includes(`'${type}'`)) {
       b.textContent = '✓ Copiado';
       b.classList.add('copied');
       setTimeout(() => { b.textContent = 'Copiar'; b.classList.remove('copied'); }, 1500);
     }
   });
-  toast(type === 'obs' ? 'URL OBS copiada!' : 'URL Broadcaster copiada!');
+  const labels = { obs: 'URL OBS (tela) copiada!', obsCam: 'URL OBS (câmera) copiada!', broadcast: 'URL Broadcaster copiada!', tunnel: 'URL externa (tela) copiada!', tunnelCam: 'URL externa (câmera) copiada!' };
+  toast(labels[type] || 'URL copiada!');
 }
 
 function openUrl(type) {

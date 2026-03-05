@@ -998,7 +998,9 @@ async function setQuality(q) {
 // ─────────────────────────────────────────────────────────────────────────────
 function connect() {
   const room = document.getElementById('roomInput').value.trim() || 'default';
-  const wsUrl = `ws://${location.hostname}:${location.port || 4000}`;
+  const wsUrl = location.protocol === 'https:'
+    ? `wss://${location.host}`
+    : `ws://${location.hostname}:${location.port || 4000}`;
 
   setStatus('Conectando ao servidor...', 'connecting');
   log(`Conectando → ${wsUrl} · sala: ${room}`, 'info');
@@ -1407,7 +1409,9 @@ async function startCamBroadcast(providedStream = null) {
 
   const room   = document.getElementById('roomInput').value.trim() || 'default';
   const camRoom = `${room}-cam`;
-  const wsUrl  = `ws://${location.hostname}:${location.port || 4000}`;
+  const wsUrl  = location.protocol === 'https:'
+    ? `wss://${location.host}`
+    : `ws://${location.hostname}:${location.port || 4000}`;
 
   wsCam = new WebSocket(wsUrl);
 
@@ -1555,7 +1559,9 @@ function startPhoneMode() {
 
   const room      = document.getElementById('roomInput').value.trim() || 'default';
   const phoneRoom = `${room}-phone`;
-  const wsUrl     = `ws://${location.hostname}:${location.port || 4000}`;
+  const wsUrl     = location.protocol === 'https:'
+    ? `wss://${location.host}`
+    : `ws://${location.hostname}:${location.port || 4000}`;
 
   wsPhone = new WebSocket(wsUrl);
 
