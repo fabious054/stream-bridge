@@ -174,11 +174,23 @@ input[type=text] {
 /* ── MAIN AREA ── */
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 260px;
+  grid-template-columns: 196px 1fr 268px;
   flex: 1;
   overflow: hidden;
   min-height: 0;
 }
+
+.sidebar-left {
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.sidebar-left::-webkit-scrollbar { width: 3px; }
+.sidebar-left::-webkit-scrollbar-track { background: transparent; }
+.sidebar-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 /* ── VIDEO AREA ── */
 .video-area {
@@ -634,6 +646,7 @@ input[type=text] {
 /* ── OBS MODE: clean video only ── */
 body.obs-mode header,
 body.obs-mode .sidebar,
+body.obs-mode .sidebar-left,
 body.obs-mode .video-overlay { display: none !important; }
 
 body.obs-mode .workspace { grid-template-columns: 1fr; }
@@ -650,7 +663,7 @@ body.obs-mode #localVideo {
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+  .sidebar, .sidebar-left { display: none; }
 }
 </style>
 </head>
@@ -694,51 +707,8 @@ body.obs-mode #localVideo {
 <!-- ── WORKSPACE ──────────────────────────────────────────────────────────── -->
 <div class="workspace">
 
-  <!-- Video -->
-  <div class="video-area" id="videoArea">
-    <!-- Placeholder -->
-    <div class="no-stream" id="noStream">
-      <svg class="no-stream-icon" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="0.8">
-        <rect x="2" y="7" width="20" height="15" rx="2"/>
-        <polyline points="17 2 12 7 7 2"/>
-      </svg>
-      <div class="no-stream-badge">
-        <span style="width:5px;height:5px;border-radius:50%;background:var(--muted);display:inline-block"></span>
-        Aguardando conexão
-      </div>
-      <div class="no-stream-text">
-        Selecione o papel e clique em<br>
-        <strong style="color:var(--accent)">Conectar</strong> para iniciar
-      </div>
-    </div>
-
-    <!-- Videos -->
-    <video id="localVideo"  autoplay muted   playsinline style="display:none"></video>
-    <video id="remoteVideo" autoplay         playsinline style="display:none"></video>
-
-    <!-- Overlay -->
-    <div class="video-overlay">
-      <div class="video-top-bar">
-        <div class="live-badge" id="liveBadge">
-          <div class="live-badge-dot"></div> LIVE
-        </div>
-        <div class="video-stats">
-          <span class="vstat" id="vsRes">—</span>
-          <span class="vstat" id="vsFps">— fps</span>
-          <span class="vstat" id="vsKbps">— kbps</span>
-          <span class="vstat" id="vsRtt">— ms</span>
-        </div>
-      </div>
-
-      <div class="video-bottom-bar" id="mediaBar" style="display:none">
-        <div class="spacer"></div>
-        <span id="peerCountLabel" style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.5)"></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sidebar -->
-  <div class="sidebar">
+  <!-- ── ASIDE ESQUERDO: Controles · Status · Qualidade ── -->
+  <div class="sidebar sidebar-left">
 
     <!-- Broadcaster controls -->
     <div class="sidebar-section" id="ctrlSection" style="display:none">
@@ -793,9 +763,64 @@ body.obs-mode #localVideo {
         <button class="q-btn" onclick="setQuality('720p')" data-q="720p">720p<br><span style="opacity:0.6;font-size:0.52rem">2.5 Mbps</span></button>
         <button class="q-btn selected" onclick="setQuality('1080p')" data-q="1080p">1080p<br><span style="opacity:0.6;font-size:0.52rem">8 Mbps</span></button>
         <button class="q-btn" onclick="setQuality('screen')" data-q="screen">Tela<br><span style="opacity:0.6;font-size:0.52rem">15 Mbps</span></button>
-        <button class="q-btn" onclick="setQuality('game')" data-q="game" style="grid-column:span 2">Jogo<br><span style="opacity:0.6;font-size:0.52rem">20 Mbps · 1080p 60fps otimizado</span></button>
+        <button class="q-btn" onclick="setQuality('game')" data-q="game" style="grid-column:span 2">Jogo<br><span style="opacity:0.6;font-size:0.52rem">20 Mbps · 60fps</span></button>
       </div>
     </div>
+
+    <!-- OBS tip (viewer only) -->
+    <div class="sidebar-section" id="obsTipSection" style="display:none">
+      <div class="obs-tip">
+        <strong>Configuração OBS Studio</strong>
+        1. Fontes → + → Browser Source<br>
+        2. URL: <span id="obsUrl" style="color:var(--accent)">http://localhost:4000/?obs=1</span><br>
+        3. Resolução: 1920 × 1080<br>
+        4. Áudio gerenciado pelo OBS
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── VÍDEO ── -->
+  <div class="video-area" id="videoArea">
+    <div class="no-stream" id="noStream">
+      <svg class="no-stream-icon" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="0.8">
+        <rect x="2" y="7" width="20" height="15" rx="2"/>
+        <polyline points="17 2 12 7 7 2"/>
+      </svg>
+      <div class="no-stream-badge">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--muted);display:inline-block"></span>
+        Aguardando conexão
+      </div>
+      <div class="no-stream-text">
+        Selecione o papel e clique em<br>
+        <strong style="color:var(--accent)">Conectar</strong> para iniciar
+      </div>
+    </div>
+
+    <video id="localVideo"  autoplay muted   playsinline style="display:none"></video>
+    <video id="remoteVideo" autoplay         playsinline style="display:none"></video>
+
+    <div class="video-overlay">
+      <div class="video-top-bar">
+        <div class="live-badge" id="liveBadge">
+          <div class="live-badge-dot"></div> LIVE
+        </div>
+        <div class="video-stats">
+          <span class="vstat" id="vsRes">—</span>
+          <span class="vstat" id="vsFps">— fps</span>
+          <span class="vstat" id="vsKbps">— kbps</span>
+          <span class="vstat" id="vsRtt">— ms</span>
+        </div>
+      </div>
+      <div class="video-bottom-bar" id="mediaBar" style="display:none">
+        <div class="spacer"></div>
+        <span id="peerCountLabel" style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.5)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ASIDE DIREITO: Mic · Câmera · Log ── -->
+  <div class="sidebar">
 
     <!-- Audio device (broadcaster only) -->
     <div class="sidebar-section" id="audioSection">
@@ -820,11 +845,32 @@ body.obs-mode #localVideo {
       </div>
 
       <div id="camOverlayControls" style="display:none">
-        <select class="audio-select" id="cameraSelect" onchange="onCameraDeviceChange()">
-          <option value="">Dispositivo padrão</option>
-        </select>
 
-        <div class="cam-preview-wrap" id="camPreviewWrap" style="display:none">
+        <div style="display:flex;gap:4px;margin-bottom:0.5rem">
+          <button class="q-btn selected" id="camSrcPC"    onclick="setCamSource('pc')"    style="flex:1;padding:0.3rem 0">PC</button>
+          <button class="q-btn"          id="camSrcPhone" onclick="setCamSource('phone')" style="flex:1;padding:0.3rem 0">Celular</button>
+        </div>
+
+        <div id="camSrcPCControls">
+          <select class="audio-select" id="cameraSelect" onchange="onCameraDeviceChange()">
+            <option value="">Dispositivo padrão</option>
+          </select>
+        </div>
+
+        <div id="camSrcPhoneControls" style="display:none">
+          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-bottom:0.3rem">Abra no celular:</div>
+          <div style="display:flex;gap:0.3rem;align-items:stretch">
+            <div id="phoneUrlText" style="font-family:var(--mono);font-size:0.52rem;color:var(--accent);flex:1;word-break:break-all;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:0.3rem 0.4rem">—</div>
+            <button class="btn btn-ghost" onclick="copyPhoneUrl()" style="font-size:0.52rem;padding:0.3rem 0.5rem;flex-shrink:0;align-self:stretch">Copiar</button>
+          </div>
+          <div id="phoneConnStatus" style="font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.3rem;line-height:1.5">Aguardando celular...</div>
+          <div id="phoneQRWrap" style="display:none;margin-top:0.5rem;text-align:center">
+            <div id="phoneQR" style="display:inline-block;background:#fff;border-radius:6px;padding:6px;line-height:0"></div>
+            <div style="font-family:var(--mono);font-size:0.48rem;color:var(--muted);margin-top:0.3rem">Escaneie com a câmera do iPhone</div>
+          </div>
+        </div>
+
+        <div class="cam-preview-wrap" id="camPreviewWrap" style="display:none;margin-top:0.5rem">
           <video id="camPreviewVideo" autoplay muted playsinline></video>
           <div class="cam-preview-label">Prévia · ao vivo</div>
         </div>
@@ -836,23 +882,14 @@ body.obs-mode #localVideo {
       </div>
     </div>
 
-    <!-- OBS tip -->
-    <div class="sidebar-section" id="obsTipSection" style="display:none">
-      <div class="obs-tip">
-        <strong>Configuração OBS Studio</strong>
-        1. Fontes → + → Browser Source<br>
-        2. URL: <span id="obsUrl" style="color:var(--accent)">http://localhost:4000/?obs=1</span><br>
-        3. Resolução: 1920 × 1080<br>
-        4. Áudio gerenciado pelo OBS
-      </div>
-    </div>
-
-    <!-- Log -->
-    <div class="sidebar-title" style="padding:0.6rem 0.8rem 0.2rem; flex-shrink:0">Registro de Eventos</div>
+    <!-- Log — sempre visível no fundo, ocupa espaço restante -->
+    <div class="sidebar-title" style="padding:0.6rem 0.8rem 0.2rem;flex-shrink:0">Registro de Eventos</div>
     <div class="log-scroll" id="logArea"></div>
   </div>
+
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG
@@ -1007,6 +1044,7 @@ function disconnect() {
 
 function cleanupAll() {
   stopAudioMeter();
+  stopPhoneMode();
   stopCamBroadcast();
   for (const pc of Object.values(peers)) pc.close();
   peers = {};
@@ -1335,31 +1373,36 @@ async function initiateCamPeer(remotePeerId) {
   sendCam({ type: 'offer', to: remotePeerId, sdp: pc.localDescription });
 }
 
-async function startCamBroadcast() {
+async function startCamBroadcast(providedStream = null) {
   stopCamBroadcast();
 
-  const deviceId = document.getElementById('cameraSelect')?.value || '';
+  if (providedStream) {
+    camBroadcastStream = providedStream;
+    log('Câmera do celular · retransmitindo para OBS', 'success');
+  } else {
+    const deviceId = document.getElementById('cameraSelect')?.value || '';
 
-  // Stop preview to free camera for broadcast stream
-  if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
-  document.getElementById('camPreviewWrap').style.display = 'none';
+    // Stop preview to free camera for broadcast stream
+    if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
+    document.getElementById('camPreviewWrap').style.display = 'none';
 
-  try {
-    camBroadcastStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width:     { exact: 1280 },
-        height:    { exact: 720  },
-        frameRate: { ideal: 60   },
-        ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-      },
-      audio: false,
-    });
-    await populateCameraDevices();
-    const s = camBroadcastStream.getVideoTracks()[0]?.getSettings();
-    if (s) log(`Câmera: ${s.width}×${s.height} @${Math.round(s.frameRate)}fps`, 'success');
-  } catch(e) {
-    log('Erro ao capturar câmera: ' + e.message, 'error');
-    return;
+    try {
+      camBroadcastStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width:     { exact: 1280 },
+          height:    { exact: 720  },
+          frameRate: { ideal: 60   },
+          ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+        },
+        audio: false,
+      });
+      await populateCameraDevices();
+      const s = camBroadcastStream.getVideoTracks()[0]?.getSettings();
+      if (s) log(`Câmera: ${s.width}×${s.height} @${Math.round(s.frameRate)}fps`, 'success');
+    } catch(e) {
+      log('Erro ao capturar câmera: ' + e.message, 'error');
+      return;
+    }
   }
 
   const room   = document.getElementById('roomInput').value.trim() || 'default';
@@ -1409,13 +1452,15 @@ async function onCamOverlayToggle() {
   document.getElementById('camOverlayControls').style.display = camOverlayActive ? '' : 'none';
   updateCtrlBtn('ctrlCam', camOverlayActive);
   if (camOverlayActive) {
-    if (ws?.readyState === WebSocket.OPEN) {
-      // Go straight to broadcast — no separate preview step needed
+    if (camSource === 'phone') {
+      startPhoneMode();
+    } else if (ws?.readyState === WebSocket.OPEN) {
       await startCamBroadcast();
     } else {
       await startCameraPreview(document.getElementById('cameraSelect').value);
     }
   } else {
+    if (camSource === 'phone') stopPhoneMode();
     stopCamBroadcast();
     if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
     document.getElementById('camPreviewWrap').style.display = 'none';
@@ -1432,6 +1477,193 @@ async function onCameraDeviceChange() {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PHONE CAMERA MODE
+// ─────────────────────────────────────────────────────────────────────────────
+let camSource    = 'pc';
+let wsPhone      = null;
+let peersPhone   = {};
+let phoneStream  = null;
+let tunnelBaseUrl = null;
+
+function setCamSource(src) {
+  camSource = src;
+  document.getElementById('camSrcPC').classList.toggle('selected', src === 'pc');
+  document.getElementById('camSrcPhone').classList.toggle('selected', src === 'phone');
+  document.getElementById('camSrcPCControls').style.display    = src === 'pc'    ? '' : 'none';
+  document.getElementById('camSrcPhoneControls').style.display = src === 'phone' ? '' : 'none';
+  if (!camOverlayActive) return;
+  if (src === 'phone') {
+    stopCamBroadcast();
+    if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
+    document.getElementById('camPreviewWrap').style.display = 'none';
+    startPhoneMode();
+  } else {
+    stopPhoneMode();
+    if (ws?.readyState === WebSocket.OPEN) startCamBroadcast();
+    else startCameraPreview(document.getElementById('cameraSelect').value);
+  }
+}
+
+function getPhoneUrl() {
+  const room = document.getElementById('roomInput').value.trim() || 'default';
+  if (tunnelBaseUrl) {
+    return `${tunnelBaseUrl}/phone.html?room=${encodeURIComponent(room)}`;
+  }
+  const ip   = params.get('ip') || location.hostname;
+  const port = location.port || 4000;
+  return `http://${ip}:${port}/phone.html?room=${encodeURIComponent(room)}`;
+}
+
+function renderPhoneQR() {
+  const url  = getPhoneUrl();
+  const wrap = document.getElementById('phoneQRWrap');
+  const cont = document.getElementById('phoneQR');
+  if (!wrap || !cont) return;
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    cont.innerHTML = qr.createSvgTag({ scalable: true, margin: 1 });
+    cont.querySelector('svg').style.cssText = 'width:140px;height:140px;display:block';
+    wrap.style.display = '';
+  } catch {
+    wrap.style.display = 'none';
+  }
+}
+
+async function fetchTunnelUrl() {
+  try {
+    const r = await fetch('/tunnel');
+    const d = await r.json();
+    const prev = tunnelBaseUrl;
+    tunnelBaseUrl = d.url || null;
+    if (tunnelBaseUrl !== prev && camSource === 'phone' && camOverlayActive) {
+      document.getElementById('phoneUrlText').textContent = getPhoneUrl();
+      renderPhoneQR();
+    }
+  } catch {}
+}
+
+function startPhoneMode() {
+  stopPhoneMode();
+  const phoneUrl = getPhoneUrl();
+  document.getElementById('phoneUrlText').textContent    = phoneUrl;
+  document.getElementById('phoneConnStatus').textContent = 'Aguardando celular...';
+  document.getElementById('camPreviewWrap').style.display = 'none';
+  renderPhoneQR();
+
+  const room      = document.getElementById('roomInput').value.trim() || 'default';
+  const phoneRoom = `${room}-phone`;
+  const wsUrl     = `ws://${location.hostname}:${location.port || 4000}`;
+
+  wsPhone = new WebSocket(wsUrl);
+
+  wsPhone.onopen = () => {
+    wsPhone.send(JSON.stringify({ type: 'join', room: phoneRoom, role: 'viewer' }));
+    log(`Modo celular · aguardando na sala: ${phoneRoom}`, 'info');
+  };
+
+  wsPhone.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+    switch (msg.type) {
+      case 'joined':
+        for (const p of msg.peers) {
+          if (p.role === 'broadcaster') {
+            document.getElementById('phoneConnStatus').textContent = 'Celular encontrado · aguardando stream...';
+          }
+        }
+        break;
+      case 'peer-joined':
+        if (msg.role === 'broadcaster') {
+          document.getElementById('phoneConnStatus').textContent = 'Celular conectado · configurando...';
+        }
+        break;
+      case 'offer':
+        await handlePhoneOffer(msg.from, msg.sdp);
+        break;
+      case 'ice-candidate':
+        try { await peersPhone[msg.from]?.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
+        break;
+      case 'peer-left':
+        if (peersPhone[msg.peerId]) { peersPhone[msg.peerId].close(); delete peersPhone[msg.peerId]; }
+        if (!Object.keys(peersPhone).length) {
+          document.getElementById('phoneConnStatus').textContent = 'Celular desconectou.';
+          stopCamBroadcast();
+          if (phoneStream) { phoneStream.getTracks().forEach(t => t.stop()); phoneStream = null; }
+        }
+        break;
+    }
+  };
+
+  wsPhone.onclose = () => log('WebSocket phone desconectado.', 'warn');
+}
+
+async function handlePhoneOffer(fromId, sdp) {
+  if (peersPhone[fromId]) {
+    clearTimeout(peersPhone[fromId]._phoneTimer);
+    if (peersPhone[fromId].signalingState !== 'closed') peersPhone[fromId].close();
+    delete peersPhone[fromId];
+  }
+
+  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require' });
+  peersPhone[fromId] = pc;
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate && wsPhone?.readyState === WebSocket.OPEN) {
+      wsPhone.send(JSON.stringify({ type: 'ice-candidate', to: fromId, candidate: e.candidate }));
+    }
+  };
+
+  const receivedTracks = [];
+  pc.ontrack = (e) => {
+    receivedTracks.push(e.track);
+    if (phoneStream) return; // already relaying
+    const hasVideo = receivedTracks.some(t => t.kind === 'video');
+    const hasAudio = receivedTracks.some(t => t.kind === 'audio');
+    if (hasVideo && hasAudio) {
+      onPhoneStreamReady(new MediaStream(receivedTracks));
+    } else if (hasVideo) {
+      // Grace period in case audio track arrives slightly after video
+      clearTimeout(pc._phoneTimer);
+      pc._phoneTimer = setTimeout(() => {
+        if (!phoneStream) onPhoneStreamReady(new MediaStream(receivedTracks));
+      }, 1500);
+    }
+  };
+
+  await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  if (wsPhone?.readyState === WebSocket.OPEN) {
+    wsPhone.send(JSON.stringify({ type: 'answer', to: fromId, sdp: pc.localDescription }));
+  }
+}
+
+function onPhoneStreamReady(stream) {
+  phoneStream = stream;
+  document.getElementById('camPreviewVideo').srcObject = stream;
+  document.getElementById('camPreviewWrap').style.display = '';
+  document.getElementById('phoneConnStatus').textContent = 'Celular ao vivo ✓';
+  log('Câmera do celular recebida · retransmitindo para OBS...', 'success');
+  startCamBroadcast(stream);
+}
+
+function stopPhoneMode() {
+  if (wsPhone) { wsPhone.close(); wsPhone = null; }
+  Object.values(peersPhone).forEach(pc => { clearTimeout(pc._phoneTimer); pc.close(); });
+  peersPhone = {};
+  if (phoneStream) { phoneStream.getTracks().forEach(t => t.stop()); phoneStream = null; }
+  const el = document.getElementById('phoneConnStatus');
+  if (el) el.textContent = 'Aguardando celular...';
+}
+
+function copyPhoneUrl() {
+  navigator.clipboard.writeText(getPhoneUrl()).then(
+    () => log('URL do celular copiada.', 'success'),
+    () => log('Erro ao copiar URL.', 'warn')
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA CAPTURE
@@ -1902,6 +2134,10 @@ if (!params.has('obs') && params.get('role') !== 'viewer') {
     });
   }
 }
+// Fetch tunnel URL on load and poll every 5 s (user may start tunnel after opening this page)
+fetchTunnelUrl();
+setInterval(fetchTunnelUrl, 5000);
+
 // ─── Auto-init from URL params (used by Electron app) ────────────────────────
 (function autoInit() {
   const p = new URLSearchParams(location.search);

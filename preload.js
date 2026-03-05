@@ -11,6 +11,12 @@ contextBridge.exposeInMainWorld('sb', {
   getIP:        ()      => ipcRenderer.invoke('get:ip'),
   openBrowser:  (url)   => ipcRenderer.invoke('open:browser', url),
 
+  // Tunnel
+  tunnelStart:    ()     => ipcRenderer.invoke('tunnel:start'),
+  tunnelStop:     ()     => ipcRenderer.invoke('tunnel:stop'),
+  tunnelStatus:   ()     => ipcRenderer.invoke('tunnel:status'),
+  onTunnelUpdate: (cb)   => ipcRenderer.on('tunnel-update', (_, data) => cb(data)),
+
   // Events from main
   onPeerUpdate: (cb)    => ipcRenderer.on('peer-update', (_, data) => cb(data)),
 

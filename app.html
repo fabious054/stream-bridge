@@ -724,6 +724,43 @@ input::placeholder { color: var(--muted); opacity: 0.6; }
           <button class="copy-btn" onclick="copyUrl('obs')">Copiar</button>
         </div>
       </div>
+
+      <!-- Tunnel card -->
+      <div class="card" style="margin-top:1rem" id="tunnelCard">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Câmera pelo Celular · Túnel HTTPS</span>
+          <div style="display:flex;gap:0.4rem">
+            <button class="btn btn-accent" id="tunnelStartBtn" onclick="tunnelStart()" style="font-size:0.62rem;padding:0.3rem 0.8rem">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Ligar Túnel
+            </button>
+            <button class="btn btn-danger" id="tunnelStopBtn" onclick="tunnelStop()" style="font-size:0.62rem;padding:0.3rem 0.8rem;display:none">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+              Parar
+            </button>
+          </div>
+        </div>
+
+        <div id="tunnelOffMsg" style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);line-height:1.8;margin-top:0.3rem">
+          Gera uma URL HTTPS para acessar a câmera do iPhone.<br>
+          Necessário para iOS Safari (getUserMedia exige HTTPS).
+        </div>
+
+        <div id="tunnelActiveSection" style="display:none;margin-top:0.5rem">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+            <div id="tunnelDot" style="width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all 0.3s"></div>
+            <span id="tunnelStatusText" style="font-family:var(--mono);font-size:0.6rem;color:var(--muted)">Conectando...</span>
+          </div>
+          <div class="url-box" id="tunnelUrlBox" style="display:none">
+            <div class="url-label">TÚNEL HTTPS</div>
+            <div class="url-text" id="tunnelUrlText">—</div>
+            <button class="copy-btn" onclick="copyTunnelUrl()">Copiar</button>
+          </div>
+          <div style="font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.3rem;line-height:1.7">
+            Powered by Cloudflare · sem senha · sem conta
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SERVER -->
@@ -958,6 +995,7 @@ let serverIP   = '127.0.0.1';
 let serverPort = 4000;
 let quality    = '1080p';
 let room       = 'minha-sala';
+let activeTunnelUrl = null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Init
@@ -979,7 +1017,80 @@ async function init() {
     document.getElementById('serverPeers').textContent = total;
   });
 
+  // Restore tunnel state if it was already running
+  const ts = await window.sb.tunnelStatus();
+  if (ts.url) setTunnelActive(ts.url);
+
+  window.sb.onTunnelUpdate((data) => {
+    if (data.url) setTunnelActive(data.url);
+    else setTunnelInactive();
+  });
+
   updateURLs();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tunnel
+// ─────────────────────────────────────────────────────────────────────────────
+async function tunnelStart() {
+  document.getElementById('tunnelStartBtn').disabled = true;
+  document.getElementById('tunnelStartBtn').textContent = 'Conectando...';
+  document.getElementById('tunnelActiveSection').style.display = '';
+  document.getElementById('tunnelOffMsg').style.display = 'none';
+  document.getElementById('tunnelDot').style.background = 'var(--accent)';
+  document.getElementById('tunnelStatusText').textContent = 'Criando túnel...';
+  document.getElementById('tunnelUrlBox').style.display = 'none';
+
+  const res = await window.sb.tunnelStart();
+  document.getElementById('tunnelStartBtn').disabled = false;
+
+  if (res.ok) {
+    setTunnelActive(res.url);
+  } else {
+    document.getElementById('tunnelDot').style.background = 'var(--red)';
+    document.getElementById('tunnelStatusText').textContent = 'Erro: ' + res.error;
+    document.getElementById('tunnelStartBtn').textContent = 'Tentar de novo';
+    // Restore button visuals
+    const btn = document.getElementById('tunnelStartBtn');
+    btn.innerHTML = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg> Ligar Túnel';
+  }
+}
+
+async function tunnelStop() {
+  await window.sb.tunnelStop();
+  setTunnelInactive();
+}
+
+function setTunnelActive(url) {
+  activeTunnelUrl = url;
+  document.getElementById('tunnelActiveSection').style.display = '';
+  document.getElementById('tunnelOffMsg').style.display = 'none';
+  document.getElementById('tunnelStartBtn').style.display = 'none';
+  document.getElementById('tunnelStopBtn').style.display = '';
+  document.getElementById('tunnelDot').style.background = 'var(--green)';
+  document.getElementById('tunnelDot').style.boxShadow = '0 0 6px var(--green)';
+  document.getElementById('tunnelStatusText').textContent = 'Túnel ativo';
+  document.getElementById('tunnelUrlText').textContent = url;
+  document.getElementById('tunnelUrlBox').style.display = '';
+
+}
+
+function setTunnelInactive() {
+  activeTunnelUrl = null;
+  document.getElementById('tunnelActiveSection').style.display = 'none';
+  document.getElementById('tunnelOffMsg').style.display = '';
+  document.getElementById('tunnelStartBtn').style.display = '';
+  document.getElementById('tunnelStopBtn').style.display = 'none';
+  document.getElementById('tunnelStartBtn').disabled = false;
+  const btn = document.getElementById('tunnelStartBtn');
+  btn.innerHTML = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg> Ligar Túnel';
+}
+
+function copyTunnelUrl() {
+  if (activeTunnelUrl) {
+    navigator.clipboard.writeText(activeTunnelUrl);
+    toast('URL do túnel copiada!');
+  }
 }
 
 function setServerOnline(ip, port) {
@@ -1069,7 +1180,7 @@ function updateRoomsTable(rooms) {
 function launchWithQuality() {
   const r    = getRoomName();
   const turn = buildTurnParams(getSettings());
-  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=${quality}${turn}`);
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=${quality}&ip=${serverIP}${turn}`);
   slog(`Transmissão iniciada: canal "${r}" · ${quality}`, 'info');
 }
 
@@ -1156,7 +1267,7 @@ function stopMicTest() {
 function launchScreen() {
   const r    = getRoomName();
   const turn = buildTurnParams(getSettings());
-  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=screen${turn}`);
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=screen&ip=${serverIP}${turn}`);
   slog(`Transmissão iniciada: canal "${r}" · tela`, 'info');
 }
 

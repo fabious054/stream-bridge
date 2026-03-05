@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>StreamBridge · Câmera</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0a; color: #f0f0f0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+/* ── Rotate hint (portrait only) ── */
+.rotate-hint {
+  display: none;
+  position: fixed; inset: 0; z-index: 200;
+  background: #0a0a0a;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1.2rem;
+  text-align: center;
+  padding: 2rem;
+}
+@media (orientation: portrait) { .rotate-hint { display: flex; } }
+
+.rotate-icon {
+  width: 56px; height: 56px;
+  border: 2px solid #60cdff;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  animation: rock 1.8s ease-in-out infinite;
+}
+@keyframes rock {
+  0%,100% { transform: rotate(-30deg); }
+  50%      { transform: rotate(30deg); }
+}
+.rotate-hint p { font-size: 0.9rem; color: #737373; line-height: 1.7; }
+.rotate-hint strong { color: #f0f0f0; }
+
+/* ── Main view (landscape) ── */
+.view { width: 100vw; height: 100vh; position: relative; }
+
+#preview {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+/* ── Live badge ── */
+.live-badge {
+  position: absolute; top: 0.7rem; left: 0.7rem;
+  background: rgba(220,30,30,0.92);
+  color: #fff;
+  font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 3px;
+  display: none; align-items: center; gap: 0.35rem;
+}
+.live-badge.visible { display: flex; }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+/* ── Status bar ── */
+.status-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 1.2rem 1rem 0.9rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+  display: flex; align-items: center; gap: 0.65rem;
+}
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #737373; flex-shrink: 0; transition: all 0.3s;
+}
+.status-dot.connecting { background: #60cdff; animation: blink 0.8s step-end infinite; }
+.status-dot.live       { background: #6ccb5f; box-shadow: 0 0 8px #6ccb5f; }
+.status-dot.error      { background: #f1707a; box-shadow: 0 0 6px #f1707a; }
+
+.status-text {
+  flex: 1;
+  font-size: 0.72rem;
+  font-family: 'Courier New', monospace;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.4;
+}
+
+.btn-end {
+  padding: 0.45rem 1rem;
+  background: rgba(241,112,122,0.18);
+  border: 1px solid rgba(241,112,122,0.45);
+  border-radius: 6px;
+  color: #f1707a;
+  font-size: 0.68rem;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.btn-end:active { background: rgba(241,112,122,0.35); }
+
+/* ── Camera flip button ── */
+.btn-flip {
+  position: absolute; top: 0.7rem; right: 0.7rem;
+  width: 38px; height: 38px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  color: rgba(255,255,255,0.8);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.15s;
+}
+.btn-flip:active { background: rgba(96,205,255,0.3); border-color: rgba(96,205,255,0.6); }
+
+/* ── Error screen ── */
+.error-screen {
+  display: none;
+  position: fixed; inset: 0; z-index: 150;
+  background: #0a0a0a;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1rem; padding: 2rem; text-align: center;
+}
+.error-screen.visible { display: flex; }
+.error-screen h2 { font-size: 1rem; color: #f1707a; }
+.error-screen p  { font-size: 0.75rem; color: #737373; line-height: 1.8; max-width: 320px; }
+.error-screen code { color: #60cdff; background: rgba(96,205,255,0.08); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; }
+</style>
+</head>
+<body>
+
+<!-- Portrait rotate hint -->
+<div class="rotate-hint">
+  <div class="rotate-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60cdff" stroke-width="1.8">
+      <rect x="5" y="2" width="14" height="20" rx="2"/>
+      <line x1="9" y1="21" x2="15" y2="21"/>
+    </svg>
+  </div>
+  <p>Gire o celular para<br><strong>modo paisagem</strong><br>para começar a transmitir</p>
+</div>
+
+<!-- Error: no secure context -->
+<div class="error-screen" id="errorScreen">
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f1707a" stroke-width="1.5">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <h2>Câmera bloqueada pelo browser</h2>
+  <div id="errorIOS" style="display:none">
+    <p>
+      No <strong>iPhone/iPad</strong>, acesse esta página via <strong>HTTPS</strong>.<br>
+      No app StreamBridge, clique em <strong>Ligar Túnel</strong><br>
+      e escaneie o QR code que aparecer.
+    </p>
+  </div>
+  <div id="errorAndroid">
+    <p>
+      No Chrome Android, ative em <code>chrome://flags</code>:<br>
+      <code>Insecure origins treated as secure</code><br>
+      adicione <span id="originHint" style="color:#60cdff"></span><br>
+      e reinicie o browser. Ou use o túnel HTTPS.
+    </p>
+  </div>
+</div>
+
+<!-- Main view -->
+<div class="view">
+  <video id="preview" autoplay muted playsinline></video>
+
+  <div class="live-badge" id="liveBadge">
+    <div class="live-dot"></div> AO VIVO
+  </div>
+
+  <button class="btn-flip" id="btnFlip" onclick="flipCamera()" title="Trocar câmera">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M1 4v6h6M23 20v-6h-6"/>
+      <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+    </svg>
+  </button>
+
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">Iniciando câmera...</div>
+    <button class="btn-end" onclick="stopAll()">Encerrar</button>
+  </div>
+</div>
+
+<script>
+const params    = new URLSearchParams(location.search);
+const room      = params.get('room') || 'default';
+const phoneRoom = `${room}-phone`;
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302'  },
+  { urls: 'stun:stun1.l.google.com:19302' },
+];
+if (params.get('turnUrl')) {
+  ICE_SERVERS.push({ urls: params.get('turnUrl'), username: params.get('turnUser') || '', credential: params.get('turnPass') || '' });
+}
+
+let ws          = null;
+let peers       = {};
+let localStream = null;
+let facingMode  = 'environment'; // start with rear camera
+
+function setStatus(text, state = 'idle') {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state !== 'idle' ? ' ' + state : '');
+  document.getElementById('liveBadge').classList.toggle('visible', state === 'live');
+}
+
+async function startCamera(facing = 'environment') {
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); }
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: { ideal: facing },
+      width:      { ideal: 1920 },
+      height:     { ideal: 1080 },
+      frameRate:  { ideal: 60, max: 60 },
+    },
+    audio: {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl:  false,
+      sampleRate:       48000,
+      channelCount:     2,
+    },
+  });
+  document.getElementById('preview').srcObject = localStream;
+
+  // Replace tracks in existing peer connections (camera flip while live)
+  for (const pc of Object.values(peers)) {
+    for (const sender of pc.getSenders()) {
+      const kind     = sender.track?.kind;
+      const newTrack = kind ? localStream.getTracks().find(t => t.kind === kind) : null;
+      if (newTrack) await sender.replaceTrack(newTrack);
+    }
+  }
+}
+
+async function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  try { await startCamera(facingMode); } catch(e) {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment'; // revert
+  }
+}
+
+function connect() {
+  // Use wss:// when page is served over HTTPS (e.g. via localtunnel)
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host  = location.protocol === 'https:'
+    ? location.host                             // tunnel: abc.loca.lt (port 443 implicit)
+    : `${location.hostname}:${location.port || 4000}`;  // LAN: 192.168.x.x:4000
+  const wsUrl = `${proto}//${host}`;
+  setStatus('Conectando ao StreamBridge...', 'connecting');
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'join', room: phoneRoom, role: 'broadcaster' }));
+    setStatus('Aguardando receptor · sala: ' + phoneRoom, 'connecting');
+  };
+
+  ws.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+    switch (msg.type) {
+      case 'joined':
+        for (const p of msg.peers) await initiatePeer(p.id);
+        break;
+      case 'peer-joined':
+        setStatus('Receptor conectado · transmitindo', 'live');
+        await initiatePeer(msg.peerId);
+        break;
+      case 'answer':
+        await peers[msg.from]?.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+        break;
+      case 'ice-candidate':
+        try { await peers[msg.from]?.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
+        break;
+      case 'peer-left':
+        peers[msg.peerId]?.close();
+        delete peers[msg.peerId];
+        if (!Object.keys(peers).length) setStatus('Receptor desconectou · aguardando...', 'connecting');
+        break;
+    }
+  };
+
+  ws.onclose = () => { setStatus('Conexão encerrada', 'error'); };
+  ws.onerror = () => { setStatus('Erro de conexão — verifique o IP', 'error'); };
+}
+
+async function initiatePeer(peerId) {
+  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require' });
+  peers[peerId] = pc;
+
+  for (const track of localStream.getTracks()) {
+    if (track.kind === 'video') track.contentHint = 'motion';
+    pc.addTrack(track, localStream);
+  }
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) ws?.send(JSON.stringify({ type: 'ice-candidate', to: peerId, candidate: e.candidate }));
+  };
+
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected')   setStatus('Transmitindo · ao vivo', 'live');
+    if (pc.connectionState === 'failed')      { pc.restartIce(); setStatus('Reconectando...', 'connecting'); }
+    if (pc.connectionState === 'disconnected') setStatus('Aguardando reconexão...', 'connecting');
+  };
+
+  // High bitrate for video
+  pc.onnegotiationneeded = async () => {};
+
+  const offer = await pc.createOffer({ voiceActivityDetection: false, offerToReceiveAudio: false, offerToReceiveVideo: false });
+  offer.sdp   = offer.sdp.replace(/m=video.*\r\n/, m => `${m}b=AS:15000\r\n`);
+  await pc.setLocalDescription(offer);
+  ws.send(JSON.stringify({ type: 'offer', to: peerId, sdp: pc.localDescription }));
+}
+
+function stopAll() {
+  localStream?.getTracks().forEach(t => t.stop());
+  Object.values(peers).forEach(pc => pc.close());
+  peers = {};
+  ws?.close();
+  setStatus('Encerrado', 'idle');
+  setTimeout(() => {
+    if (window.history.length > 1) window.history.back();
+    else window.close();
+  }, 400);
+}
+
+async function init() {
+  document.getElementById('originHint').textContent = location.origin;
+
+  // Check for secure context
+  if (!navigator.mediaDevices?.getUserMedia) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    document.getElementById('errorIOS').style.display    = isIOS ? '' : 'none';
+    document.getElementById('errorAndroid').style.display = isIOS ? 'none' : '';
+    document.getElementById('errorScreen').classList.add('visible');
+    return;
+  }
+
+  setStatus('Acessando câmera...', 'connecting');
+  try {
+    await startCamera(facingMode);
+    connect();
+  } catch(e) {
+    if (!navigator.mediaDevices) {
+      document.getElementById('errorScreen').classList.add('visible');
+    } else {
+      setStatus('Sem acesso à câmera: ' + e.message, 'error');
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>

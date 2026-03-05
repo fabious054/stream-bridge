@@ -21,6 +21,8 @@ let httpServer  = null;
 let wss         = null;
 let serverPort  = 4000;
 let serverRunning = false;
+let lt          = null;   // localtunnel instance
+let tunnelUrl   = null;
 
 // ─── Get local IP ─────────────────────────────────────────────────────────────
 function getLocalIP() {
@@ -39,6 +41,14 @@ function startSignalingServer(port) {
     // Serve client.html
     httpServer = http.createServer((req, res) => {
       let urlPath = req.url.split('?')[0];
+
+      // Tunnel status endpoint — used by client.html to get the HTTPS tunnel URL
+      if (urlPath === '/tunnel') {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ url: tunnelUrl || null }));
+        return;
+      }
+
       if (urlPath === '/' || urlPath === '') urlPath = '/client.html';
       const filePath = path.join(__dirname, urlPath);
 
@@ -121,6 +131,39 @@ function stopSignalingServer() {
     if (wss)  wss.close(() => {});
     if (httpServer) httpServer.close(() => { serverRunning = false; res(); });
     else res();
+  });
+}
+
+// ─── Tunnel (Cloudflare Quick Tunnel — sem senha, sem conta) ──────────────────
+async function startTunnel(port) {
+  await stopTunnel();
+  let cfTunnel;
+  try { cfTunnel = require('cloudflared'); }
+  catch { throw new Error('cloudflared não instalado. Execute: npm install'); }
+
+  // Ensure binary is downloaded (no-op if already present)
+  try { await cfTunnel.install(cfTunnel.bin); } catch {}
+
+  const { url, child, stop: cfStop } = await cfTunnel.tunnel({ '--url': `http://localhost:${port}` });
+  lt = { stop: cfStop, child };
+  // url is a Promise<string> that resolves once the tunnel is established
+  tunnelUrl = await url;
+
+  child.on('exit', () => {
+    tunnelUrl = null; lt = null;
+    if (mainWindow) mainWindow.webContents.send('tunnel-update', { url: null });
+  });
+
+  return tunnelUrl;
+}
+
+function stopTunnel() {
+  return new Promise(res => {
+    if (lt) {
+      try { lt.stop(); } catch {}
+      lt = null; tunnelUrl = null;
+    }
+    res();
   });
 }
 
@@ -238,6 +281,24 @@ ipcMain.handle('open:browser', (_, url) => {
 
 ipcMain.handle('get:ip', () => getLocalIP());
 
+ipcMain.handle('tunnel:start', async () => {
+  try {
+    const url = await startTunnel(serverPort || 4000);
+    if (mainWindow) mainWindow.webContents.send('tunnel-update', { url });
+    return { ok: true, url };
+  } catch(e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('tunnel:stop', async () => {
+  await stopTunnel();
+  if (mainWindow) mainWindow.webContents.send('tunnel-update', { url: null });
+  return { ok: true };
+});
+
+ipcMain.handle('tunnel:status', () => ({ url: tunnelUrl }));
+
 // Window controls
 ipcMain.on('win:minimize', () => mainWindow?.minimize());
 ipcMain.on('win:maximize', () => {
@@ -272,5 +333,6 @@ app.on('activate', () => {
 
 app.on('before-quit', async () => {
   app.isQuiting = true;
+  await stopTunnel();
   await stopSignalingServer();
 });
