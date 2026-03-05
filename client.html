@@ -428,6 +428,84 @@ input[type=text] {
 .audio-select:focus { border-color: var(--accent); }
 .audio-select option { background: var(--s2); }
 
+/* Camera section */
+.cam-preview-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+.cam-preview-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cam-preview-label {
+  position: absolute;
+  bottom: 4px;
+  left: 6px;
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.6);
+  font-family: var(--mono);
+  pointer-events: none;
+}
+
+/* Toggle switch */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.toggle-switch { position: relative; display: inline-block; width: 32px; height: 18px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: var(--s3); border-radius: 18px; cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 12px; height: 12px; left: 3px; bottom: 3px;
+  background: white; border-radius: 50%; transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(14px); }
+
+/* Camera position grid */
+.cam-pos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  width: 64px;
+  aspect-ratio: 16/9;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.cam-pos-btn {
+  background: var(--s2); border: none; cursor: pointer;
+  color: var(--muted); font-size: 0.55rem; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.cam-pos-btn:hover { background: var(--s3); color: var(--text); }
+.cam-pos-btn.selected { background: rgba(232,255,0,0.15); color: var(--accent); }
+
+/* Camera size buttons */
+.cam-size-row { display: flex; gap: 3px; }
+.cam-size-btn {
+  flex: 1; padding: 0.2rem; background: var(--s2); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--muted); font-size: 0.6rem; cursor: pointer;
+  font-family: var(--mono); transition: all 0.15s; text-align: center;
+}
+.cam-size-btn:hover { border-color: var(--blue); color: var(--blue); }
+.cam-size-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(232,255,0,0.06); }
+
 /* OBS Tip */
 .obs-tip {
   padding: 0.6rem;
@@ -626,6 +704,53 @@ body.obs-mode #localVideo {
       </select>
     </div>
 
+    <!-- Camera overlay (broadcaster only) -->
+    <div class="sidebar-section" id="cameraSection">
+      <div class="toggle-row">
+        <div class="sidebar-title" style="margin:0">Câmera overlay</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="camOverlayToggle" onchange="onCamOverlayToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div id="camOverlayControls" style="display:none">
+        <select class="audio-select" id="cameraSelect" onchange="onCameraDeviceChange()">
+          <option value="">Padrão do sistema</option>
+        </select>
+
+        <div class="cam-preview-wrap" id="camPreviewWrap" style="display:none">
+          <video id="camPreviewVideo" autoplay muted playsinline></video>
+          <div class="cam-preview-label">Prévia ao vivo</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;font-family:var(--mono);font-size:0.6rem;color:var(--muted)">
+          <span id="camStatusDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0"></span>
+          <span id="camStatusText">Câmera inativa</span>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-top:0.6rem">
+          <div>
+            <div style="font-size:0.58rem;color:var(--muted);margin-bottom:0.3rem">Posição</div>
+            <div class="cam-pos-grid">
+              <button class="cam-pos-btn selected" data-pos="top-left"     onclick="setCamPos('top-left')">↖</button>
+              <button class="cam-pos-btn"          data-pos="top-right"    onclick="setCamPos('top-right')">↗</button>
+              <button class="cam-pos-btn"          data-pos="bottom-left"  onclick="setCamPos('bottom-left')">↙</button>
+              <button class="cam-pos-btn"          data-pos="bottom-right" onclick="setCamPos('bottom-right')">↘</button>
+            </div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:0.58rem;color:var(--muted);margin-bottom:0.3rem">Tamanho</div>
+            <div class="cam-size-row">
+              <button class="cam-size-btn selected" data-size="small"  onclick="setCamSize('small')">P</button>
+              <button class="cam-size-btn"          data-size="medium" onclick="setCamSize('medium')">M</button>
+              <button class="cam-size-btn"          data-size="large"  onclick="setCamSize('large')">G</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- OBS tip -->
     <div class="sidebar-section" id="obsTipSection" style="display:none">
       <div class="obs-tip">
@@ -663,10 +788,11 @@ if (params.get('turnUrl')) {
 }
 
 const QUALITY_PRESETS = {
-  '480p':  { width:854,  height:480,  frameRate:30, bitrate:1_000_000 },
-  '720p':  { width:1280, height:720,  frameRate:30, bitrate:2_500_000 },
-  '1080p': { width:1920, height:1080, frameRate:60, bitrate:8_000_000 },
-  'screen':{ width:1920, height:1080, frameRate:60, bitrate:8_000_000, screen:true },
+  '480p':   { width:854,  height:480,  frameRate:30, bitrate:1_000_000 },
+  '720p':   { width:1280, height:720,  frameRate:30, bitrate:2_500_000 },
+  '1080p':  { width:1920, height:1080, frameRate:60, bitrate:8_000_000 },
+  'screen': { width:1920, height:1080, frameRate:60, bitrate:8_000_000, screen:true },
+  'camera': { width:1920, height:1080, frameRate:60, bitrate:8_000_000 },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -713,9 +839,10 @@ function setRole(r) {
   role = r;
   document.getElementById('roleBroadcaster').classList.toggle('active', r === 'broadcaster');
   document.getElementById('roleViewer').classList.toggle('active', r === 'viewer');
-  document.getElementById('qualitySection').style.display = r === 'broadcaster' ? '' : 'none';
-  document.getElementById('audioSection').style.display   = r === 'broadcaster' ? '' : 'none';
-  document.getElementById('obsTipSection').style.display  = r === 'viewer'      ? '' : 'none';
+  document.getElementById('qualitySection').style.display  = r === 'broadcaster' ? '' : 'none';
+  document.getElementById('audioSection').style.display    = r === 'broadcaster' ? '' : 'none';
+  document.getElementById('cameraSection').style.display   = r === 'broadcaster' ? '' : 'none';
+  document.getElementById('obsTipSection').style.display   = r === 'viewer'      ? '' : 'none';
   updateOBSUrl();
 }
 
@@ -745,6 +872,9 @@ function connect() {
     document.getElementById('disconnectBtn').style.display = '';
     document.getElementById('connectBtn').disabled         = false;
     updateOBSUrl(room);
+
+    // Start camera broadcast alongside screen if overlay is active
+    if (role === 'broadcaster' && camOverlayActive) startCamBroadcast();
   };
 
   ws.onmessage = async (e) => {
@@ -772,6 +902,7 @@ function disconnect() {
 }
 
 function cleanupAll() {
+  stopCamBroadcast();
   for (const pc of Object.values(peers)) pc.close();
   peers = {};
   if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
@@ -898,9 +1029,17 @@ function createPC(remotePeerId) {
     document.getElementById('noStream').style.display = 'none';
   };
 
+  // Re-apply bitrate once negotiation is done (setParameters is reliable post-connection)
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') {
+      pc.getSenders().forEach(s => { if (s.track) applyBitrateToSender(s, s.track.kind); });
+    }
+  };
+
   // Adicionar tracks locais se broadcaster
   if (localStream) {
     for (const track of localStream.getTracks()) {
+      if (track.kind === 'video') track.contentHint = 'motion';
       const sender = pc.addTrack(track, localStream);
       applyBitrateToSender(sender, track.kind);
     }
@@ -948,8 +1087,208 @@ async function onAudioDeviceChange() {
   if (localStream) await restartCapture();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMERA — separate broadcast connection
+// ─────────────────────────────────────────────────────────────────────────────
+let camPreviewStream   = null;
+let camOverlayActive   = false;
+let wsCam              = null;
+let peersCam           = {};
+let camBroadcastStream = null;
+
+async function populateCameraDevices() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const sel     = document.getElementById('cameraSelect');
+    const current = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    devices.filter(d => d.kind === 'videoinput').forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.deviceId;
+      opt.textContent = d.label || `Câmera (${d.deviceId.slice(0,8)})`;
+      sel.appendChild(opt);
+    });
+    if (current) sel.value = current;
+  } catch(e) {}
+}
+
+async function startCameraPreview(deviceId) {
+  if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
+  const wrap = document.getElementById('camPreviewWrap');
+  try {
+    camPreviewStream = await navigator.mediaDevices.getUserMedia({
+      video: deviceId ? { deviceId: { exact: deviceId } } : true,
+      audio: false,
+    });
+    document.getElementById('camPreviewVideo').srcObject = camPreviewStream;
+    wrap.style.display = '';
+    await populateCameraDevices();
+    await populateAudioDevices();
+  } catch(e) {
+    wrap.style.display = 'none';
+    log('Sem acesso à câmera: ' + e.message, 'warn');
+  }
+}
+
+function sendCam(msg) {
+  if (wsCam?.readyState === WebSocket.OPEN) wsCam.send(JSON.stringify(msg));
+}
+
+const CAM_BITRATE = 8_000_000;
+
+function applyCamBitrate(pc) {
+  pc.getSenders().forEach(sender => {
+    if (!sender.track) return;
+    const params = sender.getParameters();
+    if (!params.encodings?.length) params.encodings = [{}];
+    if (sender.track.kind === 'video') {
+      params.encodings[0].maxBitrate      = CAM_BITRATE;
+      params.encodings[0].maxFramerate    = 60;
+      params.encodings[0].networkPriority = 'high';
+      params.encodings[0].priority        = 'high';
+    }
+    try { sender.setParameters(params); } catch(e) {}
+  });
+}
+
+function createCamPC(remotePeerId) {
+  const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  peersCam[remotePeerId] = pc;
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) sendCam({ type: 'ice-candidate', to: remotePeerId, candidate: e.candidate });
+  };
+
+  // Re-apply bitrate once connection is live (setParameters works reliably post-negotiation)
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') applyCamBitrate(pc);
+  };
+
+  if (camBroadcastStream) {
+    for (const track of camBroadcastStream.getTracks()) {
+      // Signal to encoder this is camera (motion) content for better rate control
+      if (track.kind === 'video') track.contentHint = 'motion';
+      pc.addTrack(track, camBroadcastStream);
+    }
+  }
+  return pc;
+}
+
+async function initiateCamPeer(remotePeerId) {
+  const pc    = createCamPC(remotePeerId);
+  const offer = await pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
+
+  // Inject bandwidth hint into SDP so receiver knows the expected bitrate
+  offer.sdp = offer.sdp.replace(/m=video.*\r\n/, (m) => `${m}b=AS:${Math.floor(CAM_BITRATE / 1000)}\r\n`);
+
+  await pc.setLocalDescription(offer);
+  sendCam({ type: 'offer', to: remotePeerId, sdp: pc.localDescription });
+}
+
+async function startCamBroadcast() {
+  stopCamBroadcast();
+
+  const deviceId = document.getElementById('cameraSelect')?.value || '';
+
+  // Stop preview to free camera for broadcast stream
+  if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
+  document.getElementById('camPreviewWrap').style.display = 'none';
+
+  try {
+    camBroadcastStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width:     { exact: 1280 },
+        height:    { exact: 720  },
+        frameRate: { ideal: 60   },
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+      },
+      audio: false,
+    });
+    await populateCameraDevices();
+    const s = camBroadcastStream.getVideoTracks()[0]?.getSettings();
+    if (s) log(`Câmera: ${s.width}×${s.height} @${Math.round(s.frameRate)}fps`, 'success');
+  } catch(e) {
+    log('Erro ao capturar câmera: ' + e.message, 'error');
+    return;
+  }
+
+  const room   = document.getElementById('roomInput').value.trim() || 'default';
+  const camRoom = `${room}-cam`;
+  const wsUrl  = `ws://${location.hostname}:${location.port || 4000}`;
+
+  wsCam = new WebSocket(wsUrl);
+
+  wsCam.onopen = () => {
+    log(`Câmera conectada · sala: ${camRoom}`, 'success');
+    wsCam.send(JSON.stringify({ type: 'join', room: camRoom, role: 'broadcaster' }));
+    document.getElementById('camStatusDot').style.background = 'var(--green)';
+    document.getElementById('camStatusText').textContent = `Ao vivo · sala: ${camRoom}`;
+  };
+
+  wsCam.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'joined') {
+      for (const p of msg.peers) await initiateCamPeer(p.id);
+    } else if (msg.type === 'peer-joined') {
+      await initiateCamPeer(msg.peerId);
+    } else if (msg.type === 'answer') {
+      await peersCam[msg.from]?.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+    } else if (msg.type === 'ice-candidate') {
+      try { await peersCam[msg.from]?.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch(e) {}
+    }
+  };
+
+  wsCam.onclose = () => {
+    log('Câmera desconectada.', 'warn');
+    document.getElementById('camStatusDot').style.background = 'var(--muted)';
+    document.getElementById('camStatusText').textContent = 'Câmera inativa';
+  };
+}
+
+function stopCamBroadcast() {
+  if (wsCam) { wsCam.close(); wsCam = null; }
+  Object.values(peersCam).forEach(pc => pc.close());
+  peersCam = {};
+  if (camBroadcastStream) { camBroadcastStream.getTracks().forEach(t => t.stop()); camBroadcastStream = null; }
+  const dot = document.getElementById('camStatusDot');
+  if (dot) dot.style.background = 'var(--muted)';
+}
+
+async function onCamOverlayToggle() {
+  camOverlayActive = document.getElementById('camOverlayToggle').checked;
+  document.getElementById('camOverlayControls').style.display = camOverlayActive ? '' : 'none';
+  if (camOverlayActive) {
+    await startCameraPreview(document.getElementById('cameraSelect').value);
+    if (ws?.readyState === WebSocket.OPEN) await startCamBroadcast();
+  } else {
+    stopCamBroadcast();
+    if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
+    document.getElementById('camPreviewWrap').style.display = 'none';
+  }
+}
+
+async function onCameraDeviceChange() {
+  if (!camOverlayActive) return;
+  if (wsCam?.readyState === WebSocket.OPEN) {
+    await startCamBroadcast(); // restarts with new device
+  } else {
+    await startCameraPreview(document.getElementById('cameraSelect').value);
+  }
+}
+
+function setCamPos(pos) {
+  document.querySelectorAll('.cam-pos-btn').forEach(b => b.classList.toggle('selected', b.dataset.pos === pos));
+}
+
+function setCamSize(size) {
+  document.querySelectorAll('.cam-size-btn').forEach(b => b.classList.toggle('selected', b.dataset.size === size));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEDIA CAPTURE
+// ─────────────────────────────────────────────────────────────────────────────
 async function startCapture() {
-  const preset   = QUALITY_PRESETS[qualityKey];
+  const preset        = QUALITY_PRESETS[qualityKey];
   const audioDeviceId = document.getElementById('audioSelect')?.value || '';
 
   const audioConstraints = {
@@ -964,21 +1303,48 @@ async function startCapture() {
 
   try {
     if (preset.screen) {
-      localStream = await navigator.mediaDevices.getDisplayMedia({
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: { width:preset.width, height:preset.height, frameRate:preset.frameRate, cursor:'always' },
-        audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false, sampleRate:48000, channelCount:2 },
+        audio: false,
       });
+      // 'detail' hint: encoder prioritises sharpness over motion smoothness (ideal for screen content)
+      screenStream.getVideoTracks().forEach(t => { t.contentHint = 'detail'; });
+
+      let audioStream = null;
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
+        await populateAudioDevices();
+      } catch(e) {
+        log('Áudio não disponível, continuando sem áudio: ' + e.message, 'warn');
+      }
+
+      const tracks = [...screenStream.getVideoTracks()];
+      if (audioStream) tracks.push(...audioStream.getAudioTracks());
+      localStream = new MediaStream(tracks);
+
+      screenStream.getVideoTracks()[0]?.addEventListener('ended', () => {
+        audioStream?.getTracks().forEach(t => t.stop());
+      });
+
     } else {
+      const cameraDeviceId = document.getElementById('cameraSelect')?.value || '';
+
+      if (camPreviewStream) {
+        camPreviewStream.getTracks().forEach(t => t.stop());
+        camPreviewStream = null;
+        document.getElementById('camPreviewWrap').style.display = 'none';
+      }
+
       localStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width:     { ideal: preset.width  },
           height:    { ideal: preset.height },
           frameRate: { ideal: preset.frameRate },
-          facingMode: 'user',
+          ...(cameraDeviceId ? { deviceId: { exact: cameraDeviceId } } : { facingMode: 'user' }),
         },
         audio: audioConstraints,
       });
-      // Populate device list now that we have permission
+      await populateCameraDevices();
       await populateAudioDevices();
     }
 
@@ -1179,11 +1545,15 @@ function toggleOBSMode() {
 setRole('broadcaster');
 updateOBSUrl();
 
-// Only populate audio devices in broadcaster mode (OBS/CEF may not support enumerateDevices)
+// Only populate devices in broadcaster mode (OBS/CEF may not support enumerateDevices)
 if (!params.has('obs') && params.get('role') !== 'viewer') {
   populateAudioDevices();
+  populateCameraDevices();
   if (navigator.mediaDevices) {
-    navigator.mediaDevices.addEventListener('devicechange', populateAudioDevices);
+    navigator.mediaDevices.addEventListener('devicechange', () => {
+      populateAudioDevices();
+      populateCameraDevices();
+    });
   }
 }
 // ─── Auto-init from URL params (used by Electron app) ────────────────────────

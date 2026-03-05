@@ -611,6 +611,7 @@ input[type=number] { width: 80px; flex: none; }
           <div class="launch-title">Tela inteira</div>
           <div class="launch-desc">Broadcast da tela + áudio sistema</div>
         </div>
+
       </div>
 
       <div class="card" style="margin-top:1rem">
@@ -718,15 +719,27 @@ input[type=number] { width: 80px; flex: none; }
       <div class="page-sub">Como usar o stream no OBS Studio</div>
 
       <div class="card">
-        <div class="card-title">URL para Browser Source</div>
+        <div class="card-title">Browser Source — Tela</div>
         <div class="url-box">
           <div class="url-text" id="obsUrlFull" style="font-size:0.75rem">—</div>
           <button class="copy-btn" id="copyOBSBtn" onclick="copyUrl('obs')">Copiar</button>
         </div>
         <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted)">
-          Esta URL abre a página em modo limpo (sem interface), ideal para o OBS.
+          Adicione no OBS como Browser Source (camada inferior).
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title">Browser Source — Câmera</div>
+        <div class="url-box">
+          <div class="url-text" id="obsCamUrlFull" style="font-size:0.75rem">—</div>
+          <button class="copy-btn" onclick="copyOBSCamUrl()">Copiar</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted)">
+          Adicione acima da tela no OBS. Ative o toggle de câmera no broadcaster primeiro.
+        </div>
+      </div>
+
 
       <div class="card">
         <div class="card-title">Configuração no OBS Studio</div>
@@ -878,11 +891,13 @@ function updateURLs() {
   const turn = buildTurnParams(s);
   const broadcaster = `http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}${turn}`;
   const obs         = `http://${host}:${serverPort}/?obs=1&room=${encodeURIComponent(r)}${turn}`;
+  const obsCam      = `http://${host}:${serverPort}/?obs=1&room=${encodeURIComponent(r)}-cam${turn}`;
 
-  document.getElementById('urlBroadcast').textContent = broadcaster;
-  document.getElementById('urlOBS').textContent       = obs;
-  document.getElementById('obsUrlFull').textContent   = obs;
-  document.getElementById('obsUrlCode').textContent   = obs;
+  document.getElementById('urlBroadcast').textContent   = broadcaster;
+  document.getElementById('urlOBS').textContent         = obs;
+  document.getElementById('obsUrlFull').textContent     = obs;
+  document.getElementById('obsUrlCode').textContent     = obs;
+  document.getElementById('obsCamUrlFull').textContent  = obsCam;
 }
 
 function getRoomName() {
@@ -966,6 +981,17 @@ function copyOBSUrl() {
   navigator.clipboard.writeText(url);
   toast('URL OBS copiada!');
 }
+
+function copyOBSCamUrl() {
+  const r    = getRoomName();
+  const s    = getSettings();
+  const host = s.publicHost || serverIP;
+  const turn = buildTurnParams(s);
+  const url  = `http://${host}:${serverPort}/?obs=1&room=${encodeURIComponent(r)}-cam${turn}`;
+  navigator.clipboard.writeText(url);
+  toast('URL OBS Câmera copiada!');
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // URL helpers
