@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamBridge</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:       #080810;
+  --s1:       #0e0e1a;
+  --s2:       #141428;
+  --border:   #1e1e3a;
+  --accent:   #e8ff00;
+  --accent2:  #ff6b35;
+  --blue:     #4fc3f7;
+  --green:    #69ff8a;
+  --red:      #ff4466;
+  --text:     #f0f0ff;
+  --muted:    #555580;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body { height:100%; overflow:hidden; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── SCAN LINES overlay ── */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.07) 2px,
+    rgba(0,0,0,0.07) 4px
+  );
+  pointer-events:none;
+  z-index:999;
+}
+
+/* ── HEADER ── */
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0.6rem 1.2rem;
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 1rem;
+}
+
+.logo {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink 2s step-end infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex:1;
+  justify-content: center;
+}
+
+.room-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+}
+
+.room-input-wrap label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+input[type=text] {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  width: 120px;
+}
+
+.role-toggle {
+  display: flex;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.role-btn {
+  padding: 0.35rem 0.8rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-btn.active {
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+}
+
+.btn-connect {
+  background: var(--accent);
+  color: #000;
+}
+.btn-connect:hover { filter: brightness(1.1); }
+.btn-connect:disabled { opacity:0.4; cursor:not-allowed; filter:none; }
+
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { filter: brightness(1.15); }
+
+.btn-ghost {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost.active-state { border-color: var(--red); color: var(--red); background: rgba(255,68,102,0.08); }
+
+/* ── MAIN AREA ── */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── VIDEO AREA ── */
+.video-area {
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#remoteVideo, #localVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.video-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+  pointer-events: all;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 3px 10px;
+  background: rgba(255,68,102,0.9);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.live-badge.visible { opacity: 1; }
+.live-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: blink 1s step-end infinite; }
+
+.video-stats {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.vstat {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.7);
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.vstat.good { color: var(--green); }
+.vstat.warn { color: var(--accent); }
+.vstat.bad  { color: var(--red); }
+
+.video-bottom-bar {
+  margin-top: auto;
+  padding: 0.6rem 0.8rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: all;
+}
+
+/* Media buttons on video */
+.media-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.5);
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+}
+.media-btn:hover { border-color: var(--accent); color: var(--accent); }
+.media-btn.off { border-color: var(--red); background: rgba(255,68,102,0.2); color: var(--red); }
+
+.spacer { flex: 1; }
+
+/* No-stream placeholder */
+.no-stream {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--bg);
+}
+
+.no-stream-icon { opacity: 0.12; }
+
+.no-stream-text {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--s1);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-section {
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+/* Status */
+.conn-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted); flex-shrink:0;
+  transition: all 0.3s;
+}
+.status-dot.connecting { background: var(--accent); animation: blink 0.8s step-end infinite; }
+.status-dot.connected  { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+.status-dot.error      { background: var(--red); }
+
+.status-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.stat-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+}
+
+.stat-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.2rem;
+}
+
+.stat-value {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Quality selector */
+.quality-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.q-btn {
+  padding: 0.4rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.q-btn:hover { border-color: var(--blue); color: var(--blue); }
+.q-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(232,255,0,0.06); }
+
+/* Audio select */
+.audio-select {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.audio-select:focus { border-color: var(--accent); }
+.audio-select option { background: var(--s2); }
+
+/* OBS Tip */
+.obs-tip {
+  padding: 0.6rem;
+  background: rgba(79,195,247,0.07);
+  border: 1px solid rgba(79,195,247,0.2);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--blue);
+  line-height: 1.7;
+}
+
+.obs-tip strong { color: var(--text); display: block; margin-bottom: 0.2rem; }
+
+/* Log */
+.log-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.6rem;
+  min-height: 0;
+}
+
+.log-scroll::-webkit-scrollbar { width: 4px; }
+.log-scroll::-webkit-scrollbar-track { background: transparent; }
+.log-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.log-entry {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  line-height: 1.7;
+  color: var(--muted);
+  padding: 1px 0;
+  word-break: break-all;
+}
+
+.log-entry.info    { color: var(--blue); }
+.log-entry.success { color: var(--green); }
+.log-entry.warn    { color: var(--accent); }
+.log-entry.error   { color: var(--red); }
+
+/* ── OBS MODE: clean video only ── */
+body.obs-mode header,
+body.obs-mode .sidebar,
+body.obs-mode .video-overlay { display: none !important; }
+
+body.obs-mode .workspace { grid-template-columns: 1fr; }
+
+body.obs-mode .video-area { background: transparent; }
+
+body.obs-mode #remoteVideo,
+body.obs-mode #localVideo {
+  object-fit: cover;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    StreamBridge
+  </div>
+
+  <div class="header-controls">
+    <div class="room-input-wrap">
+      <label>Sala</label>
+      <input type="text" id="roomInput" value="stream1" placeholder="nome-da-sala" spellcheck="false">
+    </div>
+
+    <div class="role-toggle">
+      <button class="role-btn active" id="roleBroadcaster" onclick="setRole('broadcaster')">Broadcaster</button>
+      <button class="role-btn" id="roleViewer" onclick="setRole('viewer')">Viewer / OBS</button>
+    </div>
+
+    <button class="btn btn-connect" id="connectBtn" onclick="connect()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      Conectar
+    </button>
+
+    <button class="btn btn-danger" id="disconnectBtn" onclick="disconnect()" style="display:none">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Desconectar
+    </button>
+  </div>
+
+  <button class="btn btn-ghost" id="obsBtn" onclick="toggleOBSMode()" title="Modo OBS: esconde UI, apenas vídeo limpo">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
+    OBS Mode
+  </button>
+</header>
+
+<!-- ── WORKSPACE ──────────────────────────────────────────────────────────── -->
+<div class="workspace">
+
+  <!-- Video -->
+  <div class="video-area" id="videoArea">
+    <!-- Placeholder -->
+    <div class="no-stream" id="noStream">
+      <svg class="no-stream-icon" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1">
+        <rect x="2" y="7" width="20" height="15" rx="2"/>
+        <polyline points="17 2 12 7 7 2"/>
+      </svg>
+      <div class="no-stream-text">
+        Nenhum stream ativo<br>
+        Configure o papel e clique em <strong style="color:var(--accent)">Conectar</strong>
+      </div>
+    </div>
+
+    <!-- Videos -->
+    <video id="localVideo"  autoplay muted   playsinline style="display:none"></video>
+    <video id="remoteVideo" autoplay         playsinline style="display:none"></video>
+
+    <!-- Overlay -->
+    <div class="video-overlay">
+      <div class="video-top-bar">
+        <div class="live-badge" id="liveBadge">
+          <div class="live-badge-dot"></div> LIVE
+        </div>
+        <div class="video-stats">
+          <span class="vstat" id="vsRes">—</span>
+          <span class="vstat" id="vsFps">— fps</span>
+          <span class="vstat" id="vsKbps">— kbps</span>
+          <span class="vstat" id="vsRtt">— ms</span>
+        </div>
+      </div>
+
+      <div class="video-bottom-bar" id="mediaBar" style="display:none">
+        <!-- Broadcaster controls -->
+        <div id="broadcasterControls" style="display:flex;gap:0.4rem;display:none">
+          <button class="media-btn" id="btnMic" title="Microfone" onclick="toggleMic()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+          </button>
+          <button class="media-btn" id="btnCam" title="Câmera" onclick="toggleCam()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+          </button>
+          <button class="media-btn" id="btnScreen" title="Compartilhar tela" onclick="toggleScreen()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </button>
+        </div>
+        <div class="spacer"></div>
+        <span id="peerCountLabel" style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.5)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- Connection status -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Conexão</div>
+      <div class="conn-status">
+        <div class="status-dot" id="statusDot"></div>
+        <div class="status-label" id="statusLabel">Desconectado</div>
+      </div>
+    </div>
+
+    <!-- Live stats -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Stats em tempo real</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Resolução</div><div class="stat-value" id="statRes">—</div></div>
+        <div class="stat-card"><div class="stat-label">FPS</div><div class="stat-value" id="statFps">—</div></div>
+        <div class="stat-card"><div class="stat-label">Bitrate</div><div class="stat-value" id="statBitrate">—</div></div>
+        <div class="stat-card"><div class="stat-label">Latência</div><div class="stat-value" id="statRtt">—</div></div>
+        <div class="stat-card"><div class="stat-label">Pacotes↓</div><div class="stat-value" id="statPkts">—</div></div>
+        <div class="stat-card"><div class="stat-label">Lost</div><div class="stat-value" id="statLost">—</div></div>
+      </div>
+    </div>
+
+    <!-- Quality preset (broadcaster only) -->
+    <div class="sidebar-section" id="qualitySection">
+      <div class="sidebar-title">Qualidade de captura</div>
+      <div class="quality-grid">
+        <button class="q-btn" onclick="setQuality('480p')" data-q="480p">480p · 1Mbps</button>
+        <button class="q-btn" onclick="setQuality('720p')" data-q="720p">720p · 2.5Mbps</button>
+        <button class="q-btn selected" onclick="setQuality('1080p')" data-q="1080p">1080p · 8Mbps</button>
+        <button class="q-btn" onclick="setQuality('screen')" data-q="screen">Tela · 8Mbps</button>
+      </div>
+    </div>
+
+    <!-- Audio device (broadcaster only) -->
+    <div class="sidebar-section" id="audioSection">
+      <div class="sidebar-title">Entrada de áudio</div>
+      <select class="audio-select" id="audioSelect" onchange="onAudioDeviceChange()">
+        <option value="">Padrão do sistema</option>
+      </select>
+    </div>
+
+    <!-- OBS tip -->
+    <div class="sidebar-section" id="obsTipSection" style="display:none">
+      <div class="obs-tip">
+        <strong>Como usar no OBS:</strong>
+        1. Fontes → + → Browser Source<br>
+        2. URL: <span id="obsUrl" style="color:var(--accent)">http://localhost:4000/?obs=1</span><br>
+        3. Largura/Altura: 1920×1080<br>
+        4. ✅ Controle de áudio via OBS
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="sidebar-title" style="padding:0.6rem 0.8rem 0.2rem; flex-shrink:0">Log</div>
+    <div class="log-scroll" id="logArea"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302'  },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+];
+if (params.get('turnUrl')) {
+  ICE_SERVERS.push({
+    urls:       params.get('turnUrl'),
+    username:   params.get('turnUser') || '',
+    credential: params.get('turnPass') || '',
+  });
+}
+
+const QUALITY_PRESETS = {
+  '480p':  { width:854,  height:480,  frameRate:30, bitrate:1_000_000 },
+  '720p':  { width:1280, height:720,  frameRate:30, bitrate:2_500_000 },
+  '1080p': { width:1920, height:1080, frameRate:60, bitrate:8_000_000 },
+  'screen':{ width:1920, height:1080, frameRate:60, bitrate:8_000_000, screen:true },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let ws          = null;
+let myPeerId    = null;
+let role        = 'broadcaster';
+let qualityKey  = '1080p';
+let localStream = null;
+let peers       = {};  // peerId → RTCPeerConnection
+let micMuted    = false;
+let camOff      = false;
+let screenOn    = false;
+let statsTimer  = null;
+let prevBytesIn = 0;
+let prevBytesOut= 0;
+let prevTs      = 0;
+
+// OBS mode via URL param
+if (params.has('obs')) {
+  document.body.classList.add('obs-mode');
+  setRole('viewer');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOGGING
+// ─────────────────────────────────────────────────────────────────────────────
+function log(msg, type = 'default') {
+  const area = document.getElementById('logArea');
+  const el   = document.createElement('div');
+  el.className = `log-entry ${type}`;
+  const t = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.textContent = `[${t}] ${msg}`;
+  area.appendChild(el);
+  area.scrollTop = area.scrollHeight;
+  if (area.children.length > 200) area.children[0].remove();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROLE
+// ─────────────────────────────────────────────────────────────────────────────
+function setRole(r) {
+  role = r;
+  document.getElementById('roleBroadcaster').classList.toggle('active', r === 'broadcaster');
+  document.getElementById('roleViewer').classList.toggle('active', r === 'viewer');
+  document.getElementById('qualitySection').style.display = r === 'broadcaster' ? '' : 'none';
+  document.getElementById('audioSection').style.display   = r === 'broadcaster' ? '' : 'none';
+  document.getElementById('obsTipSection').style.display  = r === 'viewer'      ? '' : 'none';
+  updateOBSUrl();
+}
+
+function setQuality(q) {
+  qualityKey = q;
+  document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === q));
+  if (localStream) restartCapture();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONNECT / DISCONNECT
+// ─────────────────────────────────────────────────────────────────────────────
+function connect() {
+  const room = document.getElementById('roomInput').value.trim() || 'default';
+  const wsUrl = `ws://${location.hostname}:${location.port || 4000}`;
+
+  setStatus('Conectando ao servidor...', 'connecting');
+  log(`Conectando → ${wsUrl} · sala: ${room}`, 'info');
+
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    log('WebSocket conectado.', 'success');
+    ws.send(JSON.stringify({ type: 'join', room, role }));
+
+    document.getElementById('connectBtn').style.display    = 'none';
+    document.getElementById('disconnectBtn').style.display = '';
+    document.getElementById('connectBtn').disabled         = false;
+    updateOBSUrl(room);
+  };
+
+  ws.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+    await handleSignal(msg);
+  };
+
+  ws.onclose = () => {
+    log('WebSocket desconectado.', 'warn');
+    setStatus('Desconectado', 'idle');
+    cleanupAll();
+  };
+
+  ws.onerror = (e) => {
+    log('Erro WebSocket. Servidor está rodando?', 'error');
+    setStatus('Erro de conexão', 'error');
+  };
+}
+
+function disconnect() {
+  if (ws) ws.close();
+  cleanupAll();
+  document.getElementById('connectBtn').style.display    = '';
+  document.getElementById('disconnectBtn').style.display = 'none';
+}
+
+function cleanupAll() {
+  for (const pc of Object.values(peers)) pc.close();
+  peers = {};
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
+  document.getElementById('localVideo').style.display  = 'none';
+  document.getElementById('remoteVideo').style.display = 'none';
+  document.getElementById('noStream').style.display    = '';
+  document.getElementById('liveBadge').classList.remove('visible');
+  document.getElementById('mediaBar').style.display    = 'none';
+  setStatus('Desconectado', 'idle');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SIGNALING HANDLER
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleSignal(msg) {
+  switch (msg.type) {
+
+    case 'joined': {
+      myPeerId = msg.peerId;
+      setStatus(`Conectado · ${msg.peers.length} peer(s)`, 'connected');
+      log(`Entrei como ${role} · sala: ${msg.room}`, 'success');
+
+      if (role === 'broadcaster') {
+        await startCapture();
+        // Initiate offers to everyone already in room
+        for (const p of msg.peers) {
+          await initiatePeer(p.id);
+        }
+      }
+      break;
+    }
+
+    case 'peer-joined': {
+      log(`Novo peer: ${msg.peerId} (${msg.role})`, 'info');
+      if (role === 'broadcaster') {
+        await initiatePeer(msg.peerId);
+      }
+      break;
+    }
+
+    case 'peer-left': {
+      log(`Peer saiu: ${msg.peerId}`, 'warn');
+      if (peers[msg.peerId]) {
+        peers[msg.peerId].close();
+        delete peers[msg.peerId];
+      }
+      break;
+    }
+
+    case 'offer': {
+      if (role !== 'viewer') break;
+      log(`Oferta recebida de ${msg.from}`, 'info');
+      const pc = createPC(msg.from);
+      await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      send({ type: 'answer', to: msg.from, sdp: pc.localDescription });
+      break;
+    }
+
+    case 'answer': {
+      const pc = peers[msg.from];
+      if (pc) await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+      log(`Resposta recebida de ${msg.from}`, 'success');
+      break;
+    }
+
+    case 'ice-candidate': {
+      const pc = peers[msg.from];
+      if (pc && msg.candidate) {
+        try { await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); }
+        catch (e) { log('ICE candidate error: ' + e.message, 'error'); }
+      }
+      break;
+    }
+  }
+}
+
+function send(data) {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PEER CONNECTION FACTORY
+// ─────────────────────────────────────────────────────────────────────────────
+function createPC(remotePeerId) {
+  const pc = new RTCPeerConnection({
+    iceServers: ICE_SERVERS,
+    iceTransportPolicy: 'all',
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require',
+  });
+
+  peers[remotePeerId] = pc;
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) {
+      send({ type: 'ice-candidate', to: remotePeerId, candidate: e.candidate });
+    }
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    log(`ICE [${remotePeerId.slice(0,8)}]: ${pc.iceConnectionState}`);
+    if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+      setStatus('P2P conectado ✓', 'connected');
+      document.getElementById('liveBadge').classList.add('visible');
+      document.getElementById('mediaBar').style.display = 'flex';
+      document.getElementById('broadcasterControls').style.display = role === 'broadcaster' ? 'flex' : 'none';
+      startStatsMonitor(pc);
+    }
+    if (pc.iceConnectionState === 'failed') {
+      log('Conexão P2P falhou. Tentando restart ICE...', 'error');
+      pc.restartIce();
+    }
+  };
+
+  pc.ontrack = (e) => {
+    log(`Track recebida: ${e.track.kind}`, 'success');
+    const rv = document.getElementById('remoteVideo');
+    if (!rv.srcObject) rv.srcObject = new MediaStream();
+    rv.srcObject.addTrack(e.track);
+    rv.style.display = 'block';
+    document.getElementById('noStream').style.display = 'none';
+  };
+
+  // Adicionar tracks locais se broadcaster
+  if (localStream) {
+    for (const track of localStream.getTracks()) {
+      const sender = pc.addTrack(track, localStream);
+      applyBitrateToSender(sender, track.kind);
+    }
+  }
+
+  return pc;
+}
+
+async function initiatePeer(remotePeerId) {
+  const pc = createPC(remotePeerId);
+
+  const offer = await pc.createOffer({
+    offerToReceiveAudio: false,
+    offerToReceiveVideo: false,
+    voiceActivityDetection: true,
+  });
+
+  // Inject bandwidth constraints into SDP
+  offer.sdp = setBandwidthSDP(offer.sdp, qualityKey);
+
+  await pc.setLocalDescription(offer);
+  send({ type: 'offer', to: remotePeerId, sdp: pc.localDescription });
+  log(`Oferta enviada para ${remotePeerId.slice(0,8)}`, 'info');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEDIA CAPTURE
+// ─────────────────────────────────────────────────────────────────────────────
+async function populateAudioDevices() {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const sel     = document.getElementById('audioSelect');
+  const current = sel.value;
+  // Keep first option (default)
+  while (sel.options.length > 1) sel.remove(1);
+  devices.filter(d => d.kind === 'audioinput').forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.textContent = d.label || `Microfone (${d.deviceId.slice(0,8)})`;
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+}
+
+async function onAudioDeviceChange() {
+  if (localStream) await restartCapture();
+}
+
+async function startCapture() {
+  const preset   = QUALITY_PRESETS[qualityKey];
+  const audioDeviceId = document.getElementById('audioSelect')?.value || '';
+
+  const audioConstraints = {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl:  false,
+    sampleRate:       48000,
+    channelCount:     2,
+    latency:          0,
+    ...(audioDeviceId ? { deviceId: { exact: audioDeviceId } } : {}),
+  };
+
+  try {
+    if (preset.screen) {
+      localStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width:preset.width, height:preset.height, frameRate:preset.frameRate, cursor:'always' },
+        audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false, sampleRate:48000, channelCount:2 },
+      });
+    } else {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width:     { ideal: preset.width  },
+          height:    { ideal: preset.height },
+          frameRate: { ideal: preset.frameRate },
+          facingMode: 'user',
+        },
+        audio: audioConstraints,
+      });
+      // Populate device list now that we have permission
+      await populateAudioDevices();
+    }
+
+    const lv = document.getElementById('localVideo');
+    lv.srcObject = localStream;
+    lv.style.display = 'block';
+    document.getElementById('noStream').style.display = 'none';
+
+    log(`Captura iniciada: ${preset.width}×${preset.height} @${preset.frameRate}fps`, 'success');
+
+  } catch (err) {
+    log(`Erro ao capturar mídia: ${err.message}`, 'error');
+    throw err;
+  }
+}
+
+async function restartCapture() {
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  await startCapture();
+  // Replace tracks in all active PCs
+  for (const pc of Object.values(peers)) {
+    for (const sender of pc.getSenders()) {
+      const newTrack = localStream.getTracks().find(t => t.kind === sender.track?.kind);
+      if (newTrack) sender.replaceTrack(newTrack);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BITRATE CONTROL
+// ─────────────────────────────────────────────────────────────────────────────
+function applyBitrateToSender(sender, kind) {
+  const preset = QUALITY_PRESETS[qualityKey];
+  const params = sender.getParameters();
+  if (!params.encodings || params.encodings.length === 0) {
+    params.encodings = [{}];
+  }
+  if (kind === 'video') {
+    params.encodings[0].maxBitrate = preset.bitrate;
+    params.encodings[0].maxFramerate = preset.frameRate;
+    // Prioritize quality
+    params.encodings[0].networkPriority = 'high';
+    params.encodings[0].priority = 'high';
+  }
+  if (kind === 'audio') {
+    params.encodings[0].maxBitrate = 256_000; // 256kbps Opus stereo
+  }
+  try { sender.setParameters(params); } catch(e) {}
+}
+
+function setBandwidthSDP(sdp, qualityKey) {
+  const preset = QUALITY_PRESETS[qualityKey];
+  const kbps   = Math.floor(preset.bitrate / 1000);
+  // Insert b=AS (bandwidth) into video m-section
+  return sdp.replace(
+    /m=video.*\r\n/,
+    (m) => `${m}b=AS:${kbps}\r\n`
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEDIA TOGGLE CONTROLS
+// ─────────────────────────────────────────────────────────────────────────────
+function toggleMic() {
+  if (!localStream) return;
+  micMuted = !micMuted;
+  localStream.getAudioTracks().forEach(t => t.enabled = !micMuted);
+  document.getElementById('btnMic').classList.toggle('off', micMuted);
+  log(micMuted ? 'Microfone silenciado.' : 'Microfone ativado.', micMuted ? 'warn' : 'success');
+}
+
+function toggleCam() {
+  if (!localStream) return;
+  camOff = !camOff;
+  localStream.getVideoTracks().forEach(t => t.enabled = !camOff);
+  document.getElementById('btnCam').classList.toggle('off', camOff);
+  log(camOff ? 'Câmera desligada.' : 'Câmera ligada.', camOff ? 'warn' : 'success');
+}
+
+async function toggleScreen() {
+  if (screenOn) {
+    screenOn = false;
+    document.getElementById('btnScreen').classList.remove('off');
+    await restartCapture();
+    log('Voltou para câmera.', 'info');
+  } else {
+    const prevKey = qualityKey;
+    qualityKey = 'screen';
+    try {
+      await restartCapture();
+      screenOn = true;
+      document.getElementById('btnScreen').classList.add('off');
+      log('Compartilhando tela.', 'success');
+      localStream.getVideoTracks()[0].onended = async () => {
+        screenOn = false;
+        qualityKey = prevKey;
+        document.getElementById('btnScreen').classList.remove('off');
+        await restartCapture();
+        log('Compartilhamento de tela encerrado.', 'info');
+      };
+    } catch {
+      qualityKey = prevKey;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATS MONITOR
+// ─────────────────────────────────────────────────────────────────────────────
+function startStatsMonitor(pc) {
+  if (statsTimer) clearInterval(statsTimer);
+  prevBytesIn = 0; prevBytesOut = 0; prevTs = Date.now();
+
+  statsTimer = setInterval(async () => {
+    try {
+      const stats = await pc.getStats();
+      const now   = Date.now();
+      const dt    = (now - prevTs) / 1000;
+      prevTs      = now;
+
+      let bytesIn=0, bytesOut=0, rtt=null, fps=null, w=null, h=null, pkts=0, lost=0;
+
+      stats.forEach(r => {
+        if (r.type === 'inbound-rtp' && r.kind === 'video') {
+          bytesIn = r.bytesReceived || 0;
+          fps     = r.framesPerSecond ? Math.round(r.framesPerSecond) : null;
+          w       = r.frameWidth;
+          h       = r.frameHeight;
+          pkts    = r.packetsReceived || 0;
+          lost    = r.packetsLost    || 0;
+        }
+        if (r.type === 'outbound-rtp' && r.kind === 'video') {
+          bytesOut = r.bytesSent || 0;
+          fps      = fps ?? (r.framesPerSecond ? Math.round(r.framesPerSecond) : null);
+          w        = w ?? r.frameWidth;
+          h        = h ?? r.frameHeight;
+        }
+        if (r.type === 'candidate-pair' && r.state === 'succeeded') {
+          rtt = r.currentRoundTripTime != null ? Math.round(r.currentRoundTripTime * 1000) : null;
+        }
+      });
+
+      const bitsIn  = ((bytesIn  - prevBytesIn)  * 8) / dt;
+      const bitsOut = ((bytesOut - prevBytesOut) * 8) / dt;
+      prevBytesIn  = bytesIn;
+      prevBytesOut = bytesOut;
+
+      const kbps = Math.round((bitsIn + bitsOut) / 1000) || 0;
+
+      // Sidebar
+      document.getElementById('statRes').textContent     = (w && h) ? `${w}×${h}` : '—';
+      document.getElementById('statFps').textContent     = fps    != null ? fps    : '—';
+      document.getElementById('statBitrate').textContent = kbps   > 0   ? `${kbps}k` : '—';
+      document.getElementById('statRtt').textContent     = rtt    != null ? `${rtt}ms` : '—';
+      document.getElementById('statPkts').textContent    = pkts;
+      document.getElementById('statLost').textContent    = lost;
+
+      // Video overlay
+      document.getElementById('vsRes').textContent  = (w && h) ? `${w}×${h}` : '—';
+      document.getElementById('vsFps').textContent  = fps != null ? `${fps} fps` : '—';
+      document.getElementById('vsKbps').textContent = kbps > 0 ? `${kbps} kbps` : '—';
+      document.getElementById('vsRtt').textContent  = rtt != null ? `${rtt}ms` : '—';
+
+      // Color code RTT
+      const rttEl = document.getElementById('vsRtt');
+      rttEl.className = 'vstat ' + (rtt == null ? '' : rtt < 50 ? 'good' : rtt < 150 ? 'warn' : 'bad');
+
+    } catch(e) {}
+  }, 1500);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function setStatus(text, state='idle') {
+  document.getElementById('statusLabel').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot';
+  if (state === 'connecting') dot.classList.add('connecting');
+  if (state === 'connected')  dot.classList.add('connected');
+  if (state === 'error')      dot.classList.add('error');
+}
+
+function updateOBSUrl(room) {
+  room = room || document.getElementById('roomInput').value;
+  const url = `http://${location.hostname}:4000/?obs=1&room=${encodeURIComponent(room)}`;
+  const el  = document.getElementById('obsUrl');
+  if (el) el.textContent = url;
+}
+
+function toggleOBSMode() {
+  document.body.classList.toggle('obs-mode');
+  const btn = document.getElementById('obsBtn');
+  btn.classList.toggle('active-state', document.body.classList.contains('obs-mode'));
+}
+
+// Init
+setRole('broadcaster');
+updateOBSUrl();
+
+// Only populate audio devices in broadcaster mode (OBS/CEF may not support enumerateDevices)
+if (!params.has('obs') && params.get('role') !== 'viewer') {
+  populateAudioDevices();
+  if (navigator.mediaDevices) {
+    navigator.mediaDevices.addEventListener('devicechange', populateAudioDevices);
+  }
+}
+// ─── Auto-init from URL params (used by Electron app) ────────────────────────
+(function autoInit() {
+  const p = new URLSearchParams(location.search);
+  
+  // OBS mode
+  if (p.has('obs')) {
+    document.body.classList.add('obs-mode');
+    setRole('viewer');
+  }
+  
+  // Pre-fill role
+  if (p.get('role') === 'broadcaster') setRole('broadcaster');
+  if (p.get('role') === 'viewer')      setRole('viewer');
+  
+  // Pre-fill room
+  if (p.get('room')) document.getElementById('roomInput').value = p.get('room');
+  
+  // Pre-fill quality
+  if (p.get('quality')) {
+    qualityKey = p.get('quality');
+    document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === qualityKey));
+  }
+  
+  // Auto-connect if all params provided
+  if (p.has('room') || p.has('obs')) {
+    setTimeout(() => connect(), 300);
+  }
+})();
+
+</script>
+</body>
+</html>

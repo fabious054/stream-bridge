@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data:;">
+<title>StreamBridge</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@500;700;800&display=swap');
+
+:root {
+  --bg:     #080810;
+  --s1:     #0d0d1c;
+  --s2:     #131328;
+  --s3:     #1a1a35;
+  --border: #1f1f3d;
+  --blight: #2a2a50;
+  --accent: #e8ff00;
+  --blue:   #4fc3f7;
+  --green:  #5dfc8a;
+  --red:    #ff3d5a;
+  --orange: #ff8c42;
+  --text:   #ededff;
+  --muted:  #4a4a70;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --radius: 10px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; user-select:none; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── TITLEBAR ── */
+.titlebar {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 1rem;
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 0.75rem;
+}
+
+.titlebar-logo {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-pip {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.server-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 3px 10px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  transition: all 0.3s;
+}
+
+.server-pill.online { border-color: rgba(93,252,138,0.3); color: var(--green); background: rgba(93,252,138,0.05); }
+.server-pill.error  { border-color: rgba(255,61,90,0.3);  color: var(--red);   }
+
+.pill-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--muted);
+  transition: all 0.3s;
+}
+.server-pill.online .pill-dot { background: var(--green); box-shadow: 0 0 5px var(--green); animation: blink 2s step-end infinite; }
+.server-pill.error  .pill-dot { background: var(--red); }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+.tb-spacer { flex: 1; }
+
+.win-controls {
+  -webkit-app-region: no-drag;
+  display: flex;
+  gap: 6px;
+}
+
+.wc {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.wc:hover { filter: brightness(1.3); }
+.wc-close    { background: #ff5f57; }
+.wc-minimize { background: #ffbd2e; }
+.wc-maximize { background: #28c840; }
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── SIDEBAR ── */
+.nav {
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.nav-section {
+  padding: 0.6rem 1rem 0.2rem;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+
+.nav-item:hover { color: var(--text); background: var(--s2); }
+.nav-item.active { color: var(--text); background: var(--s2); border-left-color: var(--accent); }
+.nav-item svg { flex-shrink: 0; opacity: 0.6; }
+.nav-item.active svg { opacity: 1; }
+
+.nav-badge {
+  margin-left: auto;
+  padding: 1px 7px;
+  background: var(--accent);
+  color: #000;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+}
+
+/* ── PAGES ── */
+.pages { overflow-y: auto; min-height: 0; }
+
+.page { display: none; padding: 1.5rem; }
+.page.active { display: block; }
+
+.page-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.page-sub {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+
+/* ── SERVER CARD ── */
+.server-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.info-block {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+
+.info-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.info-value {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+/* ── INPUT ── */
+.field-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.field-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--muted);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+input[type=text], input[type=number] {
+  flex: 1;
+  padding: 0.45rem 0.7rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus { border-color: var(--accent); }
+input[type=number] { width: 80px; flex: none; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 7px;
+  border: none;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-accent { background: var(--accent); color: #000; }
+.btn-accent:hover { filter: brightness(1.08); }
+.btn-accent:disabled { opacity:0.35; cursor:not-allowed; filter:none; }
+
+.btn-ghost {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--blight); background: var(--s3); }
+
+.btn-danger { background: rgba(255,61,90,0.12); border: 1px solid rgba(255,61,90,0.35); color: var(--red); }
+.btn-danger:hover { background: rgba(255,61,90,0.2); }
+
+.btn-blue { background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.3); color: var(--blue); }
+.btn-blue:hover { background: rgba(79,195,247,0.18); }
+
+.btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ── URL BOX ── */
+.url-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  margin-bottom: 0.5rem;
+}
+
+.url-text {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--blue);
+  word-break: break-all;
+}
+
+.url-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.copy-btn {
+  padding: 3px 10px;
+  background: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+/* ── ROOMS TABLE ── */
+.rooms-table { width: 100%; border-collapse: collapse; }
+.rooms-table th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 0 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.rooms-table td {
+  padding: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.rooms-table tr:last-child td { border-bottom: none; }
+.rooms-empty {
+  text-align: center;
+  padding: 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+/* ── QUICK LAUNCH ── */
+.launch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.launch-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.launch-card:hover { border-color: var(--accent); background: var(--s3); transform: translateY(-1px); }
+
+.launch-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items:center; justify-content:center;
+}
+
+.launch-icon.broad { background: rgba(232,255,0,0.1); }
+.launch-icon.view  { background: rgba(79,195,247,0.1); }
+.launch-icon.obs   { background: rgba(255,61,90,0.1); }
+.launch-icon.tela  { background: rgba(93,252,138,0.1); }
+
+.launch-title { font-size: 0.9rem; font-weight: 700; }
+.launch-desc  { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); }
+
+/* ── OBS GUIDE ── */
+.guide-steps { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.guide-step {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.7rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex; align-items:center; justify-content:center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.step-content { flex: 1; }
+.step-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.15rem; }
+.step-desc  { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); line-height: 1.6; }
+.step-code  {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 3px 8px;
+  background: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--blue);
+  word-break: break-all;
+}
+
+/* ── QUALITY SELECTOR ── */
+.quality-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.q-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.q-card:hover { border-color: var(--blight); }
+.q-card.selected { border-color: var(--accent); background: rgba(232,255,0,0.05); }
+
+.q-res { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; }
+.q-info { font-family: var(--mono); font-size: 0.55rem; color: var(--muted); margin-top: 2px; }
+
+/* ── LOG ── */
+.log-area {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.7rem;
+  height: 110px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+}
+
+.log-area::-webkit-scrollbar { width: 3px; }
+.log-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.log-line { color: var(--muted); line-height: 1.8; word-break: break-all; }
+.log-line.info    { color: var(--blue); }
+.log-line.success { color: var(--green); }
+.log-line.warn    { color: var(--orange); }
+.log-line.error   { color: var(--red); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.2rem;
+  padding: 0.6rem 1.1rem;
+  background: var(--s2);
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--green);
+  z-index: 999;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Titlebar -->
+<div class="titlebar">
+  <div class="titlebar-logo">
+    <div class="logo-pip"></div>
+    StreamBridge
+  </div>
+  <div class="server-pill" id="serverPill">
+    <div class="pill-dot"></div>
+    <span id="pillText">Iniciando...</span>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="win-controls">
+    <button class="wc wc-close"    onclick="window.sb.close()"></button>
+    <button class="wc wc-minimize" onclick="window.sb.minimize()"></button>
+    <button class="wc wc-maximize" onclick="window.sb.maximize()"></button>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="showPage('home')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Início
+    </div>
+    <div class="nav-item" onclick="showPage('server')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+      Servidor
+      <span class="nav-badge" id="navBadge" style="display:none">ON</span>
+    </div>
+    <div class="nav-item" onclick="showPage('broadcast')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+      Transmitir
+    </div>
+    <div class="nav-item" onclick="showPage('obs')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
+      OBS / Receiver
+    </div>
+
+    <div class="nav-section" style="margin-top:0.5rem">Configurações</div>
+    <div class="nav-item" onclick="showPage('settings')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configurações
+    </div>
+  </nav>
+
+  <!-- Pages -->
+  <div class="pages">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="page-title">Início rápido</div>
+      <div class="page-sub">Servidor rodando · clique em um dos modos abaixo</div>
+
+      <div class="launch-grid">
+        <div class="launch-card" onclick="launchBroadcaster()">
+          <div class="launch-icon broad">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8ff00" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+          </div>
+          <div class="launch-title">Broadcaster</div>
+          <div class="launch-desc">Abrir transmissor no navegador (câmera + mic)</div>
+        </div>
+
+        <div class="launch-card" onclick="launchViewer()">
+          <div class="launch-icon view">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
+          </div>
+          <div class="launch-title">Viewer</div>
+          <div class="launch-desc">Abrir receptor no navegador (outro PC)</div>
+        </div>
+
+        <div class="launch-card" onclick="copyOBSUrl()">
+          <div class="launch-icon obs">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3d5a" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div class="launch-title">Copiar URL OBS</div>
+          <div class="launch-desc">URL pronta para Browser Source no OBS</div>
+        </div>
+
+        <div class="launch-card" onclick="launchScreen()">
+          <div class="launch-icon tela">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5dfc8a" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l5 4 5-4"/></svg>
+          </div>
+          <div class="launch-title">Tela inteira</div>
+          <div class="launch-desc">Broadcast da tela + áudio sistema</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1rem">
+        <div class="card-title">URLs ativas</div>
+        <div class="url-box">
+          <div class="url-label">BROADCASTER</div>
+          <div class="url-text" id="urlBroadcast">—</div>
+          <button class="copy-btn" onclick="copyUrl('broadcast')">Copiar</button>
+          <button class="copy-btn" onclick="openUrl('broadcast')">Abrir</button>
+        </div>
+        <div class="url-box">
+          <div class="url-label">OBS / VIEWER</div>
+          <div class="url-text" id="urlOBS">—</div>
+          <button class="copy-btn" onclick="copyUrl('obs')">Copiar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVER -->
+    <div class="page" id="page-server">
+      <div class="page-title">Servidor de sinalização</div>
+      <div class="page-sub">Gerencia a troca de informações entre peers (não transmite vídeo)</div>
+
+      <div class="card">
+        <div class="card-title">Status</div>
+        <div class="server-grid">
+          <div class="info-block"><div class="info-label">IP Local</div><div class="info-value" id="serverIP">—</div></div>
+          <div class="info-block"><div class="info-label">Porta</div><div class="info-value" id="serverPortVal">4000</div></div>
+          <div class="info-block"><div class="info-label">Status</div><div class="info-value" id="serverStatusVal" style="color:var(--muted)">—</div></div>
+          <div class="info-block"><div class="info-label">Peers conectados</div><div class="info-value" id="serverPeers">0</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Porta</div>
+          <input type="number" id="portInput" value="4000" min="1024" max="65535">
+          <button class="btn btn-accent" onclick="restartServer()">Reiniciar</button>
+          <button class="btn btn-danger" onclick="stopServer()">Parar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Salas ativas</div>
+        <table class="rooms-table" id="roomsTable">
+          <thead><tr><th>Sala</th><th>Peers</th></tr></thead>
+          <tbody id="roomsBody"><tr><td colspan="2" class="rooms-empty">Nenhuma sala ativa</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Log do servidor</div>
+        <div class="log-area" id="serverLog">
+          <div class="log-line">// Aguardando conexões...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BROADCAST -->
+    <div class="page" id="page-broadcast">
+      <div class="page-title">Transmitir</div>
+      <div class="page-sub">Configure e inicie sua transmissão P2P</div>
+
+      <div class="card">
+        <div class="card-title">Qualidade de saída</div>
+        <div class="quality-grid">
+          <div class="q-card" onclick="selectQuality('480p', this)">
+            <div class="q-res">480p</div>
+            <div class="q-info">30fps · 1Mbps</div>
+          </div>
+          <div class="q-card selected" onclick="selectQuality('720p', this)">
+            <div class="q-res">720p</div>
+            <div class="q-info">30fps · 2.5Mbps</div>
+          </div>
+          <div class="q-card" onclick="selectQuality('1080p', this)">
+            <div class="q-res">1080p</div>
+            <div class="q-info">30fps · 5Mbps</div>
+          </div>
+          <div class="q-card" onclick="selectQuality('screen', this)">
+            <div class="q-res">Tela</div>
+            <div class="q-info">60fps · 8Mbps</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Sala de transmissão</div>
+        <div class="field-row">
+          <div class="field-label">Nome da sala</div>
+          <input type="text" id="roomName" value="minha-sala" placeholder="ex: stream1">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-accent" onclick="launchBroadcaster()">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Abrir Broadcaster
+          </button>
+          <button class="btn btn-blue" onclick="launchScreen()">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Compartilhar Tela
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBS -->
+    <div class="page" id="page-obs">
+      <div class="page-title">OBS / Receiver</div>
+      <div class="page-sub">Como usar o stream no OBS Studio</div>
+
+      <div class="card">
+        <div class="card-title">URL para Browser Source</div>
+        <div class="url-box">
+          <div class="url-text" id="obsUrlFull" style="font-size:0.75rem">—</div>
+          <button class="copy-btn" id="copyOBSBtn" onclick="copyUrl('obs')">Copiar</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted)">
+          Esta URL abre a página em modo limpo (sem interface), ideal para o OBS.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Configuração no OBS Studio</div>
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Adicionar fonte Browser</div>
+              <div class="step-desc">No OBS, clique em <strong>+</strong> na lista de fontes → selecione <strong>Browser Source</strong></div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">Inserir a URL</div>
+              <div class="step-desc">Cole a URL acima no campo URL:</div>
+              <div class="step-code" id="obsUrlCode">—</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">Dimensões</div>
+              <div class="step-desc">Largura: <strong>1920</strong> · Altura: <strong>1080</strong> (ou a resolução da sua stream)</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">Áudio</div>
+              <div class="step-desc">Marque ✅ <strong>Controlar áudio via OBS</strong> para mixer independente no OBS</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <div class="step-title">Pronto!</div>
+              <div class="step-desc">Inicie o Broadcaster no outro PC e o stream aparecerá automaticamente nessa fonte.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-title">Configurações</div>
+      <div class="page-sub">Preferências do StreamBridge</div>
+
+      <div class="card">
+        <div class="card-title">Servidor</div>
+        <div class="field-row">
+          <div class="field-label">Porta padrão</div>
+          <input type="number" id="defaultPort" value="4000" min="1024" max="65535">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Sala padrão</div>
+          <input type="text" id="defaultRoom" value="minha-sala">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Host público</div>
+          <input type="text" id="publicHost" placeholder="ex: 123.45.67.89 ou meudominio.com">
+        </div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.25rem">
+          IP ou domínio externo usado para gerar a URL OBS/Viewer quando fora da rede local.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">TURN Server (para conexões via Internet)</div>
+        <div class="field-row">
+          <div class="field-label">URL</div>
+          <input type="text" id="turnUrl" placeholder="turn:seu-servidor:3478">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Usuário</div>
+          <input type="text" id="turnUser" placeholder="usuario">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Senha</div>
+          <input type="text" id="turnPass" placeholder="senha">
+        </div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem">
+          Necessário apenas para conectar PCs em redes diferentes (Internet). Para rede local, deixe vazio.
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-accent" onclick="saveSettings()">Salvar configurações</button>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+</div><!-- /layout -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────────────────────
+let serverIP   = '127.0.0.1';
+let serverPort = 4000;
+let quality    = '720p';
+let room       = 'minha-sala';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────────────────────
+async function init() {
+  loadSettings();
+  const status = await window.sb.serverStatus();
+  serverPort   = status.port;
+  serverIP     = await window.sb.getIP();
+
+  if (status.running) {
+    setServerOnline(serverIP, serverPort);
+  }
+
+  // Listen for peer updates from main process
+  window.sb.onPeerUpdate((rooms) => {
+    updateRoomsTable(rooms);
+    const total = Object.values(rooms).reduce((a, b) => a + b, 0);
+    document.getElementById('serverPeers').textContent = total;
+  });
+
+  updateURLs();
+}
+
+function setServerOnline(ip, port) {
+  serverIP   = ip;
+  serverPort = port;
+  const pill = document.getElementById('serverPill');
+  pill.className = 'server-pill online';
+  document.getElementById('pillText').textContent = `${ip}:${port}`;
+  document.getElementById('serverIP').textContent  = ip;
+  document.getElementById('serverPortVal').textContent = port;
+  document.getElementById('serverStatusVal').textContent = 'Online';
+  document.getElementById('serverStatusVal').style.color = 'var(--green)';
+  document.getElementById('navBadge').style.display = '';
+  updateURLs();
+  slog(`Servidor online em ${ip}:${port}`, 'success');
+}
+
+function updateURLs() {
+  const r    = getRoomName();
+  const s    = getSettings();
+  const host = s.publicHost || serverIP;
+  const turn = buildTurnParams(s);
+  const broadcaster = `http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}${turn}`;
+  const obs         = `http://${host}:${serverPort}/?obs=1&room=${encodeURIComponent(r)}${turn}`;
+
+  document.getElementById('urlBroadcast').textContent = broadcaster;
+  document.getElementById('urlOBS').textContent       = obs;
+  document.getElementById('obsUrlFull').textContent   = obs;
+  document.getElementById('obsUrlCode').textContent   = obs;
+}
+
+function getRoomName() {
+  return document.getElementById('roomName')?.value.trim() || room;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation
+// ─────────────────────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id)?.classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  updateURLs();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server controls
+// ─────────────────────────────────────────────────────────────────────────────
+async function restartServer() {
+  const port = parseInt(document.getElementById('portInput').value) || 4000;
+  slog(`Reiniciando servidor na porta ${port}...`, 'warn');
+  const res = await window.sb.startServer(port);
+  if (res.ok) { setServerOnline(res.ip, res.port); toast('Servidor reiniciado!'); }
+  else { slog('Erro: ' + res.error, 'error'); }
+}
+
+async function stopServer() {
+  await window.sb.stopServer();
+  document.getElementById('serverPill').className = 'server-pill';
+  document.getElementById('pillText').textContent = 'Offline';
+  document.getElementById('serverStatusVal').textContent = 'Parado';
+  document.getElementById('serverStatusVal').style.color = 'var(--red)';
+  document.getElementById('navBadge').style.display = 'none';
+  slog('Servidor parado.', 'warn');
+}
+
+function updateRoomsTable(rooms) {
+  const tbody = document.getElementById('roomsBody');
+  const entries = Object.entries(rooms);
+  if (entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" class="rooms-empty">Nenhuma sala ativa</td></tr>';
+  } else {
+    tbody.innerHTML = entries.map(([id, count]) =>
+      `<tr><td>${id}</td><td>${count} peer(s)</td></tr>`
+    ).join('');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Launch
+// ─────────────────────────────────────────────────────────────────────────────
+function launchBroadcaster() {
+  const r = getRoomName();
+  const q = quality;
+  const turn = buildTurnParams(getSettings());
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=${q}${turn}`);
+  slog(`Broadcaster aberto: sala "${r}" · ${q}`, 'info');
+}
+
+function launchViewer() {
+  const r = getRoomName();
+  const turn = buildTurnParams(getSettings());
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=viewer&room=${encodeURIComponent(r)}${turn}`);
+}
+
+function launchScreen() {
+  const r = getRoomName();
+  const turn = buildTurnParams(getSettings());
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=screen${turn}`);
+  slog(`Screen share aberto: sala "${r}"`, 'info');
+}
+
+function copyOBSUrl() {
+  const r    = getRoomName();
+  const s    = getSettings();
+  const host = s.publicHost || serverIP;
+  const turn = buildTurnParams(s);
+  const url  = `http://${host}:${serverPort}/?obs=1&room=${encodeURIComponent(r)}${turn}`;
+  navigator.clipboard.writeText(url);
+  toast('URL OBS copiada!');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// URL helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function copyUrl(type) {
+  const el = type === 'obs'
+    ? document.getElementById('urlOBS')
+    : document.getElementById('urlBroadcast');
+  navigator.clipboard.writeText(el.textContent);
+
+  // Find all copy buttons with this action and flash
+  document.querySelectorAll('.copy-btn').forEach(b => {
+    if (b.getAttribute('onclick')?.includes(type)) {
+      b.textContent = '✓ Copiado';
+      b.classList.add('copied');
+      setTimeout(() => { b.textContent = 'Copiar'; b.classList.remove('copied'); }, 1500);
+    }
+  });
+  toast(type === 'obs' ? 'URL OBS copiada!' : 'URL Broadcaster copiada!');
+}
+
+function openUrl(type) {
+  const el = document.getElementById(type === 'obs' ? 'urlOBS' : 'urlBroadcast');
+  window.sb.openBrowser(el.textContent);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Quality
+// ─────────────────────────────────────────────────────────────────────────────
+function selectQuality(q, el) {
+  quality = q;
+  document.querySelectorAll('.q-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings
+// ─────────────────────────────────────────────────────────────────────────────
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem('sb_settings') || '{}'); } catch { return {}; }
+}
+
+function buildTurnParams(s) {
+  if (!s.turnUrl) return '';
+  return `&turnUrl=${encodeURIComponent(s.turnUrl)}&turnUser=${encodeURIComponent(s.turnUser||'')}&turnPass=${encodeURIComponent(s.turnPass||'')}`;
+}
+
+function saveSettings() {
+  const s = {
+    defaultPort: document.getElementById('defaultPort').value,
+    defaultRoom: document.getElementById('defaultRoom').value,
+    publicHost:  document.getElementById('publicHost').value.trim(),
+    turnUrl:     document.getElementById('turnUrl').value.trim(),
+    turnUser:    document.getElementById('turnUser').value.trim(),
+    turnPass:    document.getElementById('turnPass').value.trim(),
+  };
+  localStorage.setItem('sb_settings', JSON.stringify(s));
+  if (s.defaultRoom) room = s.defaultRoom;
+  updateURLs();
+  toast('Configurações salvas!');
+}
+
+function loadSettings() {
+  const s = getSettings();
+  if (s.defaultPort) document.getElementById('defaultPort').value = s.defaultPort;
+  if (s.defaultRoom) { document.getElementById('defaultRoom').value = s.defaultRoom; room = s.defaultRoom; }
+  if (s.publicHost)  document.getElementById('publicHost').value  = s.publicHost;
+  if (s.turnUrl)     document.getElementById('turnUrl').value     = s.turnUrl;
+  if (s.turnUser)    document.getElementById('turnUser').value    = s.turnUser;
+  if (s.turnPass)    document.getElementById('turnPass').value    = s.turnPass;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server log
+// ─────────────────────────────────────────────────────────────────────────────
+function slog(msg, type = 'default') {
+  const area = document.getElementById('serverLog');
+  const el   = document.createElement('div');
+  el.className = `log-line ${type}`;
+  const t = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.textContent = `[${t}] ${msg}`;
+  area.appendChild(el);
+  area.scrollTop = area.scrollHeight;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Update urls on room input change
+// ─────────────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  document.getElementById('roomName')?.addEventListener('input', updateURLs);
+});
+</script>
+</body>
+</html>
