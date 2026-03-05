@@ -8,17 +8,17 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
 
 :root {
-  --bg:       #080810;
-  --s1:       #0e0e1a;
-  --s2:       #141428;
-  --border:   #1e1e3a;
-  --accent:   #e8ff00;
-  --accent2:  #ff6b35;
-  --blue:     #4fc3f7;
-  --green:    #69ff8a;
-  --red:      #ff4466;
-  --text:     #f0f0ff;
-  --muted:    #555580;
+  --bg:       #1c1c1c;
+  --s1:       #212121;
+  --s2:       #2b2b2b;
+  --border:   #3d3d3d;
+  --accent:   #60cdff;
+  --accent2:  #4ea6c8;
+  --blue:     #4ea6c8;
+  --green:    #6ccb5f;
+  --red:      #f1707a;
+  --text:     #f0f0f0;
+  --muted:    #737373;
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'Syne', sans-serif;
 }
@@ -36,20 +36,6 @@ body {
   height: 100vh;
 }
 
-/* ── SCAN LINES overlay ── */
-body::after {
-  content:'';
-  position:fixed; inset:0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.07) 2px,
-    rgba(0,0,0,0.07) 4px
-  );
-  pointer-events:none;
-  z-index:999;
-}
 
 /* ── HEADER ── */
 header {
@@ -57,6 +43,7 @@ header {
   padding: 0.6rem 1.2rem;
   background: var(--s1);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(96,205,255,0.04);
   flex-shrink: 0;
   gap: 1rem;
 }
@@ -96,6 +83,12 @@ header {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.3rem 0.6rem;
+  transition: border-color 0.2s;
+}
+
+.room-input-wrap:focus-within {
+  border-color: rgba(96,205,255,0.4);
+  box-shadow: 0 0 0 2px rgba(96,205,255,0.06);
 }
 
 .room-input-wrap label {
@@ -142,6 +135,7 @@ input[type=text] {
   background: var(--accent);
   color: #000;
   font-weight: 700;
+  box-shadow: 0 0 10px rgba(96,205,255,0.3);
 }
 
 .btn {
@@ -159,14 +153,15 @@ input[type=text] {
 }
 
 .btn-connect {
-  background: var(--accent);
-  color: #000;
+  background: #0078d4;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0,120,212,0.3);
 }
-.btn-connect:hover { filter: brightness(1.1); }
-.btn-connect:disabled { opacity:0.4; cursor:not-allowed; filter:none; }
+.btn-connect:hover { background: #1a86d8; box-shadow: 0 0 18px rgba(0,120,212,0.45); }
+.btn-connect:disabled { opacity:0.4; cursor:not-allowed; box-shadow:none; }
 
-.btn-danger { background: var(--red); color: #fff; }
-.btn-danger:hover { filter: brightness(1.15); }
+.btn-danger { background: var(--red); color: #fff; box-shadow: 0 0 10px rgba(255,68,102,0.2); }
+.btn-danger:hover { filter: brightness(1.15); box-shadow: 0 0 16px rgba(255,68,102,0.35); }
 
 .btn-ghost {
   background: var(--s2);
@@ -291,18 +286,33 @@ input[type=text] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.2rem;
   background: var(--bg);
 }
 
-.no-stream-icon { opacity: 0.12; }
+.no-stream-icon { opacity: 0.08; }
 
 .no-stream-text {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--muted);
   text-align: center;
-  line-height: 1.8;
+  line-height: 2;
+  letter-spacing: 0.03em;
+}
+
+.no-stream-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 /* ── SIDEBAR ── */
@@ -318,6 +328,7 @@ input[type=text] {
   padding: 0.8rem;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  position: relative;
 }
 
 .sidebar-title {
@@ -327,6 +338,19 @@ input[type=text] {
   letter-spacing: 0.15em;
   color: var(--muted);
   margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sidebar-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 2px;
+  opacity: 0.5;
 }
 
 /* Status */
@@ -334,11 +358,16 @@ input[type=text] {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.6rem;
+  padding: 0.5rem 0.7rem;
   background: var(--s2);
   border: 1px solid var(--border);
   border-radius: 6px;
+  transition: border-color 0.3s;
 }
+
+.conn-status.connected  { border-color: rgba(108,203,95,0.35); background: rgba(108,203,95,0.05); }
+.conn-status.connecting { border-color: rgba(96,205,255,0.3); }
+.conn-status.error      { border-color: rgba(241,112,122,0.35); }
 
 .status-dot {
   width: 8px; height: 8px; border-radius: 50%;
@@ -346,8 +375,8 @@ input[type=text] {
   transition: all 0.3s;
 }
 .status-dot.connecting { background: var(--accent); animation: blink 0.8s step-end infinite; }
-.status-dot.connected  { background: var(--green);  box-shadow: 0 0 6px var(--green); }
-.status-dot.error      { background: var(--red); }
+.status-dot.connected  { background: var(--green);  box-shadow: 0 0 8px var(--green); }
+.status-dot.error      { background: var(--red); box-shadow: 0 0 6px var(--red); }
 
 .status-label {
   font-family: var(--mono);
@@ -368,6 +397,17 @@ input[type=text] {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.5rem 0.6rem;
+  transition: border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(96,205,255,0.08), transparent);
 }
 
 .stat-label {
@@ -376,14 +416,15 @@ input[type=text] {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
 .stat-value {
   font-family: var(--mono);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--accent);
+  letter-spacing: -0.02em;
 }
 
 /* Quality selector */
@@ -394,24 +435,30 @@ input[type=text] {
 }
 
 .q-btn {
-  padding: 0.4rem;
+  padding: 0.45rem 0.4rem;
   background: var(--s2);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.15s;
   text-align: center;
+  line-height: 1.5;
 }
 
-.q-btn:hover { border-color: var(--blue); color: var(--blue); }
-.q-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(232,255,0,0.06); }
+.q-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(79,195,247,0.04); }
+.q-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(96,205,255,0.07);
+  box-shadow: 0 0 8px rgba(96,205,255,0.1), inset 0 1px 0 rgba(96,205,255,0.1);
+}
 
-/* Audio select */
+/* Device select */
 .audio-select {
   width: 100%;
   padding: 0.4rem 0.5rem;
@@ -423,9 +470,13 @@ input[type=text] {
   font-size: 0.65rem;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
 }
-.audio-select:focus { border-color: var(--accent); }
+.audio-select:focus {
+  border-color: rgba(96,205,255,0.4);
+  box-shadow: 0 0 0 2px rgba(96,205,255,0.06);
+}
 .audio-select option { background: var(--s2); }
 
 /* Camera section */
@@ -437,6 +488,7 @@ input[type=text] {
   border-radius: 6px;
   overflow: hidden;
   margin-top: 0.5rem;
+  border: 1px solid var(--border);
 }
 .cam-preview-wrap video {
   width: 100%;
@@ -446,12 +498,28 @@ input[type=text] {
 }
 .cam-preview-label {
   position: absolute;
-  bottom: 4px;
-  left: 6px;
-  font-size: 0.55rem;
-  color: rgba(255,255,255,0.6);
+  bottom: 5px;
+  left: 7px;
+  font-size: 0.52rem;
+  color: rgba(255,255,255,0.5);
   font-family: var(--mono);
   pointer-events: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cam-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  padding: 0.35rem 0.5rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }
 
 /* Toggle switch */
@@ -461,84 +529,103 @@ input[type=text] {
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
-.toggle-switch { position: relative; display: inline-block; width: 32px; height: 18px; flex-shrink: 0; }
+.toggle-switch { position: relative; display: inline-block; width: 34px; height: 19px; flex-shrink: 0; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
   position: absolute; inset: 0;
-  background: var(--s3); border-radius: 18px; cursor: pointer;
-  transition: background 0.2s;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 19px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 .toggle-slider::before {
   content: ''; position: absolute;
-  width: 12px; height: 12px; left: 3px; bottom: 3px;
-  background: white; border-radius: 50%; transition: transform 0.2s;
+  width: 13px; height: 13px; left: 2px; bottom: 2px;
+  background: var(--muted); border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
 }
-.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(14px); }
+.toggle-switch input:checked + .toggle-slider {
+  background: rgba(96,205,255,0.15);
+  border-color: rgba(96,205,255,0.4);
+  box-shadow: 0 0 8px rgba(96,205,255,0.2);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(15px);
+  background: var(--accent);
+}
 
 /* Camera position grid */
 .cam-pos-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 3px;
-  width: 64px;
+  gap: 2px;
+  width: 66px;
   aspect-ratio: 16/9;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
+  background: var(--border);
 }
 .cam-pos-btn {
   background: var(--s2); border: none; cursor: pointer;
-  color: var(--muted); font-size: 0.55rem; transition: all 0.15s;
+  color: var(--muted); font-size: 0.6rem; transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.cam-pos-btn:hover { background: var(--s3); color: var(--text); }
-.cam-pos-btn.selected { background: rgba(232,255,0,0.15); color: var(--accent); }
+.cam-pos-btn:hover { background: rgba(96,205,255,0.08); color: var(--text); }
+.cam-pos-btn.selected { background: rgba(96,205,255,0.15); color: var(--accent); }
 
 /* Camera size buttons */
 .cam-size-row { display: flex; gap: 3px; }
 .cam-size-btn {
-  flex: 1; padding: 0.2rem; background: var(--s2); border: 1px solid var(--border);
+  flex: 1; padding: 0.25rem; background: var(--s2); border: 1px solid var(--border);
   border-radius: 4px; color: var(--muted); font-size: 0.6rem; cursor: pointer;
   font-family: var(--mono); transition: all 0.15s; text-align: center;
+  letter-spacing: 0.05em;
 }
-.cam-size-btn:hover { border-color: var(--blue); color: var(--blue); }
-.cam-size-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(232,255,0,0.06); }
+.cam-size-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(79,195,247,0.04); }
+.cam-size-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(96,205,255,0.07); }
 
 /* OBS Tip */
 .obs-tip {
-  padding: 0.6rem;
-  background: rgba(79,195,247,0.07);
-  border: 1px solid rgba(79,195,247,0.2);
+  padding: 0.7rem;
+  background: rgba(79,195,247,0.05);
+  border: 1px solid rgba(79,195,247,0.15);
+  border-left: 2px solid rgba(79,195,247,0.5);
   border-radius: 6px;
   font-family: var(--mono);
   font-size: 0.6rem;
   color: var(--blue);
-  line-height: 1.7;
+  line-height: 1.9;
 }
 
-.obs-tip strong { color: var(--text); display: block; margin-bottom: 0.2rem; }
+.obs-tip strong { color: var(--text); display: block; margin-bottom: 0.3rem; letter-spacing: 0.05em; }
 
 /* Log */
 .log-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0.6rem;
+  padding: 0.5rem 0.7rem;
   min-height: 0;
 }
 
-.log-scroll::-webkit-scrollbar { width: 4px; }
+.log-scroll::-webkit-scrollbar { width: 3px; }
 .log-scroll::-webkit-scrollbar-track { background: transparent; }
 .log-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .log-entry {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  line-height: 1.7;
+  font-size: 0.58rem;
+  line-height: 1.8;
   color: var(--muted);
-  padding: 1px 0;
+  padding: 0;
   word-break: break-all;
+}
+
+.log-entry::before {
+  content: '›';
+  margin-right: 0.3rem;
+  opacity: 0.4;
 }
 
 .log-entry.info    { color: var(--blue); }
@@ -580,13 +667,13 @@ body.obs-mode #localVideo {
 
   <div class="header-controls">
     <div class="room-input-wrap">
-      <label>Sala</label>
-      <input type="text" id="roomInput" value="stream1" placeholder="nome-da-sala" spellcheck="false">
+      <label>Canal</label>
+      <input type="text" id="roomInput" value="stream1" placeholder="canal" spellcheck="false">
     </div>
 
     <div class="role-toggle">
-      <button class="role-btn active" id="roleBroadcaster" onclick="setRole('broadcaster')">Broadcaster</button>
-      <button class="role-btn" id="roleViewer" onclick="setRole('viewer')">Viewer / OBS</button>
+      <button class="role-btn active" id="roleBroadcaster" onclick="setRole('broadcaster')">Transmissor</button>
+      <button class="role-btn" id="roleViewer" onclick="setRole('viewer')">Receptor</button>
     </div>
 
     <button class="btn btn-connect" id="connectBtn" onclick="connect()">
@@ -596,13 +683,13 @@ body.obs-mode #localVideo {
 
     <button class="btn btn-danger" id="disconnectBtn" onclick="disconnect()" style="display:none">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      Desconectar
+      Encerrar
     </button>
   </div>
 
   <button class="btn btn-ghost" id="obsBtn" onclick="toggleOBSMode()" title="Modo OBS: esconde UI, apenas vídeo limpo">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
-    OBS Mode
+    Modo OBS
   </button>
 </header>
 
@@ -613,13 +700,17 @@ body.obs-mode #localVideo {
   <div class="video-area" id="videoArea">
     <!-- Placeholder -->
     <div class="no-stream" id="noStream">
-      <svg class="no-stream-icon" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1">
+      <svg class="no-stream-icon" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="0.8">
         <rect x="2" y="7" width="20" height="15" rx="2"/>
         <polyline points="17 2 12 7 7 2"/>
       </svg>
+      <div class="no-stream-badge">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--muted);display:inline-block"></span>
+        Aguardando conexão
+      </div>
       <div class="no-stream-text">
-        Nenhum stream ativo<br>
-        Configure o papel e clique em <strong style="color:var(--accent)">Conectar</strong>
+        Selecione o papel e clique em<br>
+        <strong style="color:var(--accent)">Conectar</strong> para iniciar
       </div>
     </div>
 
@@ -665,7 +756,7 @@ body.obs-mode #localVideo {
 
     <!-- Connection status -->
     <div class="sidebar-section">
-      <div class="sidebar-title">Conexão</div>
+      <div class="sidebar-title">Status</div>
       <div class="conn-status">
         <div class="status-dot" id="statusDot"></div>
         <div class="status-label" id="statusLabel">Desconectado</div>
@@ -674,31 +765,31 @@ body.obs-mode #localVideo {
 
     <!-- Live stats -->
     <div class="sidebar-section">
-      <div class="sidebar-title">Stats em tempo real</div>
+      <div class="sidebar-title">Métricas</div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-label">Resolução</div><div class="stat-value" id="statRes">—</div></div>
         <div class="stat-card"><div class="stat-label">FPS</div><div class="stat-value" id="statFps">—</div></div>
         <div class="stat-card"><div class="stat-label">Bitrate</div><div class="stat-value" id="statBitrate">—</div></div>
         <div class="stat-card"><div class="stat-label">Latência</div><div class="stat-value" id="statRtt">—</div></div>
-        <div class="stat-card"><div class="stat-label">Pacotes↓</div><div class="stat-value" id="statPkts">—</div></div>
-        <div class="stat-card"><div class="stat-label">Lost</div><div class="stat-value" id="statLost">—</div></div>
+        <div class="stat-card"><div class="stat-label">Pacotes</div><div class="stat-value" id="statPkts">—</div></div>
+        <div class="stat-card"><div class="stat-label">Perdidos</div><div class="stat-value" id="statLost">—</div></div>
       </div>
     </div>
 
     <!-- Quality preset (broadcaster only) -->
     <div class="sidebar-section" id="qualitySection">
-      <div class="sidebar-title">Qualidade de captura</div>
+      <div class="sidebar-title">Qualidade</div>
       <div class="quality-grid">
-        <button class="q-btn" onclick="setQuality('480p')" data-q="480p">480p · 1Mbps</button>
-        <button class="q-btn" onclick="setQuality('720p')" data-q="720p">720p · 2.5Mbps</button>
-        <button class="q-btn selected" onclick="setQuality('1080p')" data-q="1080p">1080p · 8Mbps</button>
-        <button class="q-btn" onclick="setQuality('screen')" data-q="screen">Tela · 8Mbps</button>
+        <button class="q-btn" onclick="setQuality('480p')" data-q="480p">480p<br><span style="opacity:0.6;font-size:0.52rem">1 Mbps</span></button>
+        <button class="q-btn" onclick="setQuality('720p')" data-q="720p">720p<br><span style="opacity:0.6;font-size:0.52rem">2.5 Mbps</span></button>
+        <button class="q-btn selected" onclick="setQuality('1080p')" data-q="1080p">1080p<br><span style="opacity:0.6;font-size:0.52rem">8 Mbps</span></button>
+        <button class="q-btn" onclick="setQuality('screen')" data-q="screen">Tela<br><span style="opacity:0.6;font-size:0.52rem">8 Mbps</span></button>
       </div>
     </div>
 
     <!-- Audio device (broadcaster only) -->
     <div class="sidebar-section" id="audioSection">
-      <div class="sidebar-title">Entrada de áudio</div>
+      <div class="sidebar-title">Microfone</div>
       <select class="audio-select" id="audioSelect" onchange="onAudioDeviceChange()">
         <option value="">Padrão do sistema</option>
       </select>
@@ -707,7 +798,7 @@ body.obs-mode #localVideo {
     <!-- Camera overlay (broadcaster only) -->
     <div class="sidebar-section" id="cameraSection">
       <div class="toggle-row">
-        <div class="sidebar-title" style="margin:0">Câmera overlay</div>
+        <div class="sidebar-title" style="margin:0">Câmera</div>
         <label class="toggle-switch">
           <input type="checkbox" id="camOverlayToggle" onchange="onCamOverlayToggle()">
           <span class="toggle-slider"></span>
@@ -716,22 +807,22 @@ body.obs-mode #localVideo {
 
       <div id="camOverlayControls" style="display:none">
         <select class="audio-select" id="cameraSelect" onchange="onCameraDeviceChange()">
-          <option value="">Padrão do sistema</option>
+          <option value="">Dispositivo padrão</option>
         </select>
 
         <div class="cam-preview-wrap" id="camPreviewWrap" style="display:none">
           <video id="camPreviewVideo" autoplay muted playsinline></video>
-          <div class="cam-preview-label">Prévia ao vivo</div>
+          <div class="cam-preview-label">Prévia · ao vivo</div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;font-family:var(--mono);font-size:0.6rem;color:var(--muted)">
+        <div class="cam-status-row">
           <span id="camStatusDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0"></span>
           <span id="camStatusText">Câmera inativa</span>
         </div>
 
         <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-top:0.6rem">
           <div>
-            <div style="font-size:0.58rem;color:var(--muted);margin-bottom:0.3rem">Posição</div>
+            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.1em">Posição</div>
             <div class="cam-pos-grid">
               <button class="cam-pos-btn selected" data-pos="top-left"     onclick="setCamPos('top-left')">↖</button>
               <button class="cam-pos-btn"          data-pos="top-right"    onclick="setCamPos('top-right')">↗</button>
@@ -740,7 +831,7 @@ body.obs-mode #localVideo {
             </div>
           </div>
           <div style="flex:1">
-            <div style="font-size:0.58rem;color:var(--muted);margin-bottom:0.3rem">Tamanho</div>
+            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.1em">Tamanho</div>
             <div class="cam-size-row">
               <button class="cam-size-btn selected" data-size="small"  onclick="setCamSize('small')">P</button>
               <button class="cam-size-btn"          data-size="medium" onclick="setCamSize('medium')">M</button>
@@ -754,16 +845,16 @@ body.obs-mode #localVideo {
     <!-- OBS tip -->
     <div class="sidebar-section" id="obsTipSection" style="display:none">
       <div class="obs-tip">
-        <strong>Como usar no OBS:</strong>
+        <strong>Configuração OBS Studio</strong>
         1. Fontes → + → Browser Source<br>
         2. URL: <span id="obsUrl" style="color:var(--accent)">http://localhost:4000/?obs=1</span><br>
-        3. Largura/Altura: 1920×1080<br>
-        4. ✅ Controle de áudio via OBS
+        3. Resolução: 1920 × 1080<br>
+        4. Áudio gerenciado pelo OBS
       </div>
     </div>
 
     <!-- Log -->
-    <div class="sidebar-title" style="padding:0.6rem 0.8rem 0.2rem; flex-shrink:0">Log</div>
+    <div class="sidebar-title" style="padding:0.6rem 0.8rem 0.2rem; flex-shrink:0">Registro de Eventos</div>
     <div class="log-scroll" id="logArea"></div>
   </div>
 </div>
@@ -791,7 +882,8 @@ const QUALITY_PRESETS = {
   '480p':   { width:854,  height:480,  frameRate:30, bitrate:1_000_000 },
   '720p':   { width:1280, height:720,  frameRate:30, bitrate:2_500_000 },
   '1080p':  { width:1920, height:1080, frameRate:60, bitrate:8_000_000 },
-  'screen': { width:1920, height:1080, frameRate:60, bitrate:8_000_000, screen:true },
+  'screen': { width:1920, height:1080, frameRate:60, bitrate:15_000_000, screen:true },
+  'game':   { width:1920, height:1080, frameRate:60, bitrate:20_000_000, screen:true, game:true },
   'camera': { width:1920, height:1080, frameRate:60, bitrate:8_000_000 },
 };
 
@@ -1043,6 +1135,7 @@ function createPC(remotePeerId) {
       const sender = pc.addTrack(track, localStream);
       applyBitrateToSender(sender, track.kind);
     }
+    preferH264(pc);
   }
 
   return pc;
@@ -1054,7 +1147,7 @@ async function initiatePeer(remotePeerId) {
   const offer = await pc.createOffer({
     offerToReceiveAudio: false,
     offerToReceiveVideo: false,
-    voiceActivityDetection: true,
+    voiceActivityDetection: false,
   });
 
   // Inject bandwidth constraints into SDP
@@ -1084,7 +1177,43 @@ async function populateAudioDevices() {
 }
 
 async function onAudioDeviceChange() {
-  if (localStream) await restartCapture();
+  if (!localStream) return;
+  const preset = QUALITY_PRESETS[qualityKey];
+  if (preset?.screen) {
+    // Screen mode: only swap the audio track — don't reopen the screen picker
+    await swapAudioTrack();
+  } else {
+    await restartCapture();
+  }
+}
+
+async function swapAudioTrack() {
+  const audioDeviceId = document.getElementById('audioSelect')?.value || '';
+  const constraints = {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl:  false,
+    sampleRate:       48000,
+    channelCount:     2,
+    latency:          0,
+    ...(audioDeviceId ? { deviceId: { exact: audioDeviceId } } : {}),
+  };
+  try {
+    const newStream = await navigator.mediaDevices.getUserMedia({ audio: constraints, video: false });
+    const newTrack  = newStream.getAudioTracks()[0];
+    // Replace in localStream
+    const oldTrack = localStream.getAudioTracks()[0];
+    if (oldTrack) { localStream.removeTrack(oldTrack); oldTrack.stop(); }
+    localStream.addTrack(newTrack);
+    // Replace in all active peer connections
+    for (const pc of Object.values(peers)) {
+      const sender = pc.getSenders().find(s => s.track?.kind === 'audio');
+      if (sender) await sender.replaceTrack(newTrack);
+    }
+    log('Microfone alterado sem interrupção da tela', 'success');
+  } catch(e) {
+    log(`Erro ao trocar microfone: ${e.message}`, 'error');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1304,11 +1433,16 @@ async function startCapture() {
   try {
     if (preset.screen) {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { width:preset.width, height:preset.height, frameRate:preset.frameRate, cursor:'always' },
+        video: {
+          width:     { ideal: preset.width,     max: preset.width     },
+          height:    { ideal: preset.height,    max: preset.height    },
+          frameRate: { ideal: preset.frameRate, max: preset.frameRate },
+          cursor:    'always',
+        },
         audio: false,
       });
-      // 'detail' hint: encoder prioritises sharpness over motion smoothness (ideal for screen content)
-      screenStream.getVideoTracks().forEach(t => { t.contentHint = 'detail'; });
+      // 'motion' hint: encoder prioritises smooth framerate over sharpness — critical for games
+      screenStream.getVideoTracks().forEach(t => { t.contentHint = 'motion'; });
 
       let audioStream = null;
       try {
@@ -1374,8 +1508,31 @@ async function restartCapture() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BITRATE CONTROL
+// CODEC + BITRATE CONTROL
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Prefer H264 (hardware-accelerated in Chromium/Electron) over VP8/VP9 software encode.
+// Hardware H264 has lower CPU overhead and better frame-pacing for game content.
+function preferH264(pc) {
+  try {
+    const caps   = RTCRtpSender.getCapabilities('video');
+    if (!caps) return;
+    const codecs = caps.codecs;
+    // H264 packetization-mode=1 first (most compatible with hardware encoders),
+    // then any H264, then VP9, then whatever's left
+    const h264pm1 = codecs.filter(c => c.mimeType.toLowerCase() === 'video/h264' && c.sdpFmtpLine?.includes('packetization-mode=1'));
+    const h264    = codecs.filter(c => c.mimeType.toLowerCase() === 'video/h264' && !c.sdpFmtpLine?.includes('packetization-mode=1'));
+    const vp9     = codecs.filter(c => c.mimeType.toLowerCase() === 'video/vp9');
+    const rest    = codecs.filter(c => !['video/h264','video/vp9'].includes(c.mimeType.toLowerCase()));
+    const ordered = [...h264pm1, ...h264, ...vp9, ...rest];
+    for (const t of pc.getTransceivers()) {
+      if (t.sender?.track?.kind === 'video') {
+        try { t.setCodecPreferences(ordered); } catch(_) {}
+      }
+    }
+  } catch(_) {}
+}
+
 function applyBitrateToSender(sender, kind) {
   const preset = QUALITY_PRESETS[qualityKey];
   const params = sender.getParameters();
@@ -1383,11 +1540,14 @@ function applyBitrateToSender(sender, kind) {
     params.encodings = [{}];
   }
   if (kind === 'video') {
-    params.encodings[0].maxBitrate = preset.bitrate;
-    params.encodings[0].maxFramerate = preset.frameRate;
-    // Prioritize quality
+    params.encodings[0].maxBitrate      = preset.bitrate;
+    params.encodings[0].maxFramerate    = preset.frameRate;
+    // Floor bitrate at 30% to prevent encoder collapse during complex scenes
+    params.encodings[0].minBitrate      = Math.floor(preset.bitrate * 0.3);
     params.encodings[0].networkPriority = 'high';
-    params.encodings[0].priority = 'high';
+    params.encodings[0].priority        = 'high';
+    // Drop resolution/quality before dropping frames (critical for smooth gameplay)
+    params.degradationPreference        = 'maintain-framerate';
   }
   if (kind === 'audio') {
     params.encodings[0].maxBitrate = 256_000; // 256kbps Opus stereo
@@ -1521,11 +1681,13 @@ function startStatsMonitor(pc) {
 // ─────────────────────────────────────────────────────────────────────────────
 function setStatus(text, state='idle') {
   document.getElementById('statusLabel').textContent = text;
-  const dot = document.getElementById('statusDot');
-  dot.className = 'status-dot';
-  if (state === 'connecting') dot.classList.add('connecting');
-  if (state === 'connected')  dot.classList.add('connected');
-  if (state === 'error')      dot.classList.add('error');
+  const dot    = document.getElementById('statusDot');
+  const wrap   = dot.closest('.conn-status');
+  dot.className  = 'status-dot';
+  wrap.className = 'conn-status';
+  if (state === 'connecting') { dot.classList.add('connecting'); wrap.classList.add('connecting'); }
+  if (state === 'connected')  { dot.classList.add('connected');  wrap.classList.add('connected');  }
+  if (state === 'error')      { dot.classList.add('error');      wrap.classList.add('error');      }
 }
 
 function updateOBSUrl(room) {

@@ -8,22 +8,22 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@500;700;800&display=swap');
 
 :root {
-  --bg:     #080810;
-  --s1:     #0d0d1c;
-  --s2:     #131328;
-  --s3:     #1a1a35;
-  --border: #1f1f3d;
-  --blight: #2a2a50;
-  --accent: #e8ff00;
-  --blue:   #4fc3f7;
-  --green:  #5dfc8a;
-  --red:    #ff3d5a;
-  --orange: #ff8c42;
-  --text:   #ededff;
-  --muted:  #4a4a70;
+  --bg:     #1c1c1c;
+  --s1:     #212121;
+  --s2:     #2b2b2b;
+  --s3:     #363636;
+  --border: #3d3d3d;
+  --blight: #4d4d4d;
+  --accent: #60cdff;
+  --blue:   #60cdff;
+  --green:  #6ccb5f;
+  --red:    #f1707a;
+  --orange: #f0a868;
+  --text:   #f0f0f0;
+  --muted:  #737373;
   --mono: 'IBM Plex Mono', monospace;
   --sans: 'Syne', sans-serif;
-  --radius: 10px;
+  --radius: 8px;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -82,8 +82,8 @@ body {
   transition: all 0.3s;
 }
 
-.server-pill.online { border-color: rgba(93,252,138,0.3); color: var(--green); background: rgba(93,252,138,0.05); }
-.server-pill.error  { border-color: rgba(255,61,90,0.3);  color: var(--red);   }
+.server-pill.online { border-color: rgba(108,203,95,0.3); color: var(--green); background: rgba(108,203,95,0.05); }
+.server-pill.error  { border-color: rgba(241,112,122,0.3);  color: var(--red);   }
 
 .pill-dot {
   width: 5px; height: 5px; border-radius: 50%;
@@ -100,20 +100,26 @@ body {
 .win-controls {
   -webkit-app-region: no-drag;
   display: flex;
-  gap: 6px;
+  align-self: stretch;
+  margin-right: -1rem;
 }
 
 .wc {
-  width: 12px; height: 12px;
-  border-radius: 50%;
+  width: 46px;
+  height: 100%;
   border: none;
+  background: transparent;
+  color: var(--text);
   cursor: pointer;
-  transition: filter 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+  font-size: 13px;
+  opacity: 0.75;
 }
-.wc:hover { filter: brightness(1.3); }
-.wc-close    { background: #ff5f57; }
-.wc-minimize { background: #ffbd2e; }
-.wc-maximize { background: #28c840; }
+.wc:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+.wc-close:hover { background: #c42b1c; opacity: 1; }
 
 /* ── LAYOUT ── */
 .layout {
@@ -165,8 +171,8 @@ body {
 .nav-badge {
   margin-left: auto;
   padding: 1px 7px;
-  background: var(--accent);
-  color: #000;
+  background: #0078d4;
+  color: #fff;
   border-radius: 10px;
   font-family: var(--mono);
   font-size: 0.55rem;
@@ -198,49 +204,76 @@ body {
   background: var(--s1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.1rem;
+  padding: 1.25rem;
   margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--blight) 40%, var(--blight) 60%, transparent 100%);
 }
 
 .card-title {
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   color: var(--muted);
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
 /* ── SERVER CARD ── */
 .server-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 0.6rem;
   margin-bottom: 0.75rem;
 }
 
 .info-block {
-  background: var(--s2);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.6rem 0.8rem;
+  padding: 0.7rem 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+.info-block::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0; width: 2px;
+  background: var(--border);
+  border-radius: 2px 0 0 2px;
 }
 
 .info-label {
   font-family: var(--mono);
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: var(--muted);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
 }
 
 .info-value {
   font-family: var(--mono);
   font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-weight: 700;
+  color: var(--text);
   word-break: break-all;
+  letter-spacing: -0.01em;
 }
 
 /* ── INPUT ── */
@@ -248,63 +281,85 @@ body {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.65rem;
 }
 
 .field-label {
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   color: var(--muted);
-  width: 80px;
+  width: 90px;
   flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 input[type=text], input[type=number] {
   flex: 1;
-  padding: 0.45rem 0.7rem;
-  background: var(--s2);
+  padding: 0.48rem 0.75rem;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 7px;
   color: var(--text);
   font-family: var(--mono);
   font-size: 0.78rem;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-input:focus { border-color: var(--accent); }
+input:focus {
+  border-color: rgba(96,205,255,0.4);
+  box-shadow: 0 0 0 3px rgba(96,205,255,0.06);
+}
 input[type=number] { width: 80px; flex: none; }
+input::placeholder { color: var(--muted); opacity: 0.6; }
 
 /* ── BUTTONS ── */
 .btn {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.5rem 1.1rem;
-  border-radius: 7px;
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.5rem 1.15rem;
+  border-radius: 8px;
   border: none;
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.18s;
+  white-space: nowrap;
 }
 
-.btn-accent { background: var(--accent); color: #000; }
-.btn-accent:hover { filter: brightness(1.08); }
-.btn-accent:disabled { opacity:0.35; cursor:not-allowed; filter:none; }
+.btn-accent {
+  background: #0078d4;
+  color: #fff;
+  box-shadow: 0 0 0 0 rgba(0,120,212,0);
+}
+.btn-accent:hover {
+  background: #1a86d8;
+  box-shadow: 0 0 20px rgba(0,120,212,0.35), 0 4px 12px rgba(0,0,0,0.3);
+}
+.btn-accent:disabled { opacity:0.35; cursor:not-allowed; box-shadow:none; }
 
 .btn-ghost {
   background: var(--s2);
   border: 1px solid var(--border);
   color: var(--text);
 }
-.btn-ghost:hover { border-color: var(--blight); background: var(--s3); }
+.btn-ghost:hover { border-color: var(--blight); background: var(--s3); color: var(--text); }
 
-.btn-danger { background: rgba(255,61,90,0.12); border: 1px solid rgba(255,61,90,0.35); color: var(--red); }
-.btn-danger:hover { background: rgba(255,61,90,0.2); }
+.btn-danger {
+  background: rgba(241,112,122,0.1);
+  border: 1px solid rgba(241,112,122,0.3);
+  color: var(--red);
+}
+.btn-danger:hover { background: rgba(241,112,122,0.18); border-color: rgba(241,112,122,0.5); }
 
-.btn-blue { background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.3); color: var(--blue); }
-.btn-blue:hover { background: rgba(79,195,247,0.18); }
+.btn-blue {
+  background: rgba(96,205,255,0.08);
+  border: 1px solid rgba(96,205,255,0.25);
+  color: var(--blue);
+}
+.btn-blue:hover { background: rgba(96,205,255,0.15); border-color: rgba(96,205,255,0.4); }
 
 .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
@@ -313,44 +368,52 @@ input[type=number] { width: 80px; flex: none; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.7rem;
-  background: var(--s2);
+  padding: 0.55rem 0.8rem;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 8px;
   margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
 }
+.url-box:hover { border-color: var(--blight); }
 
 .url-text {
   flex: 1;
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--blue);
   word-break: break-all;
+  opacity: 0.85;
 }
 
 .url-label {
   font-family: var(--mono);
-  font-size: 0.55rem;
+  font-size: 0.53rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: var(--muted);
   white-space: nowrap;
+  background: var(--s3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
 }
 
 .copy-btn {
-  padding: 3px 10px;
-  background: var(--s3);
+  padding: 4px 12px;
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 5px;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
+  letter-spacing: 0.05em;
 }
-.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-.copy-btn.copied { border-color: var(--green); color: var(--green); }
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(96,205,255,0.04); }
+.copy-btn.copied { border-color: var(--green); color: var(--green); background: rgba(108,203,95,0.05); }
 
 /* ── ROOMS TABLE ── */
 .rooms-table { width: 100%; border-collapse: collapse; }
@@ -384,56 +447,80 @@ input[type=number] { width: 80px; flex: none; }
 .launch-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .launch-card {
   background: var(--s2);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(.34,1.3,.64,1);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
+  position: relative;
+  overflow: hidden;
 }
+.launch-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.launch-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.launch-card:hover.launch-card { border-color: var(--blight); }
+.launch-card:active { transform: translateY(0); }
 
-.launch-card:hover { border-color: var(--accent); background: var(--s3); transform: translateY(-1px); }
+.launch-card.card-broad:hover { border-color: rgba(96,205,255,0.4); box-shadow: 0 8px 32px rgba(96,205,255,0.08); }
+.launch-card.card-view:hover  { border-color: rgba(96,205,255,0.3);  box-shadow: 0 8px 32px rgba(96,205,255,0.06); }
+.launch-card.card-obs:hover   { border-color: rgba(241,112,122,0.4); box-shadow: 0 8px 32px rgba(241,112,122,0.06); }
+.launch-card.card-tela:hover  { border-color: rgba(108,203,95,0.4);  box-shadow: 0 8px 32px rgba(108,203,95,0.06); }
 
 .launch-icon {
-  width: 36px; height: 36px;
+  width: 38px; height: 38px;
   border-radius: 8px;
   display: flex; align-items:center; justify-content:center;
+  position: relative;
 }
 
-.launch-icon.broad { background: rgba(232,255,0,0.1); }
-.launch-icon.view  { background: rgba(79,195,247,0.1); }
-.launch-icon.obs   { background: rgba(255,61,90,0.1); }
-.launch-icon.tela  { background: rgba(93,252,138,0.1); }
+.launch-icon.broad { background: rgba(96,205,255,0.08);  border: 1px solid rgba(96,205,255,0.18); }
+.launch-icon.view  { background: rgba(96,205,255,0.06);  border: 1px solid rgba(96,205,255,0.12); }
+.launch-icon.obs   { background: rgba(241,112,122,0.08); border: 1px solid rgba(241,112,122,0.18); }
+.launch-icon.tela  { background: rgba(108,203,95,0.08);  border: 1px solid rgba(108,203,95,0.18); }
 
-.launch-title { font-size: 0.9rem; font-weight: 700; }
-.launch-desc  { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); }
+.launch-title { font-size: 0.88rem; font-weight: 700; letter-spacing: -0.01em; }
+.launch-desc  { font-family: var(--mono); font-size: 0.58rem; color: var(--muted); line-height: 1.5; }
 
 /* ── OBS GUIDE ── */
-.guide-steps { display: flex; flex-direction: column; gap: 0.5rem; }
+.guide-steps { display: flex; flex-direction: column; gap: 0.4rem; }
 
 .guide-step {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.75rem;
   align-items: flex-start;
-  padding: 0.7rem;
-  background: var(--s2);
+  padding: 0.75rem 0.8rem;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 8px;
+  transition: border-color 0.15s;
 }
+.guide-step:hover { border-color: var(--blight); }
 
 .step-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--accent);
-  color: #000;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: rgba(96,205,255,0.1);
+  border: 1px solid rgba(96,205,255,0.2);
+  color: var(--accent);
   font-family: var(--mono);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   display: flex; align-items:center; justify-content:center;
   flex-shrink: 0;
@@ -441,17 +528,17 @@ input[type=number] { width: 80px; flex: none; }
 }
 
 .step-content { flex: 1; }
-.step-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.15rem; }
-.step-desc  { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); line-height: 1.6; }
+.step-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.2rem; }
+.step-desc  { font-family: var(--mono); font-size: 0.61rem; color: var(--muted); line-height: 1.65; }
 .step-code  {
   display: inline-block;
-  margin-top: 0.3rem;
-  padding: 3px 8px;
-  background: var(--s3);
+  margin-top: 0.35rem;
+  padding: 4px 8px;
+  background: var(--s2);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 5px;
   font-family: var(--mono);
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   color: var(--blue);
   word-break: break-all;
 }
@@ -466,18 +553,29 @@ input[type=number] { width: 80px; flex: none; }
 .q-card {
   background: var(--s2);
   border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 0.6rem;
+  border-radius: 8px;
+  padding: 0.65rem 0.5rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.18s;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
+.q-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+  border-radius: 0 0 8px 8px;
+}
+.q-card:hover { border-color: var(--blight); background: var(--s3); }
+.q-card.selected { border-color: rgba(96,205,255,0.35); background: rgba(96,205,255,0.05); }
+.q-card.selected::before { transform: scaleX(1); }
 
-.q-card:hover { border-color: var(--blight); }
-.q-card.selected { border-color: var(--accent); background: rgba(232,255,0,0.05); }
-
-.q-res { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; }
-.q-info { font-family: var(--mono); font-size: 0.55rem; color: var(--muted); margin-top: 2px; }
+.q-res { font-size: 1rem; font-weight: 800; letter-spacing: -0.02em; }
+.q-info { font-family: var(--mono); font-size: 0.54rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
 
 /* ── LOG ── */
 .log-area {
@@ -534,9 +632,15 @@ input[type=number] { width: 80px; flex: none; }
   </div>
   <div class="tb-spacer"></div>
   <div class="win-controls">
-    <button class="wc wc-close"    onclick="window.sb.close()"></button>
-    <button class="wc wc-minimize" onclick="window.sb.minimize()"></button>
-    <button class="wc wc-maximize" onclick="window.sb.maximize()"></button>
+    <button class="wc wc-minimize" onclick="window.sb.minimize()" title="Minimizar">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><rect x="0" y="8" width="10" height="1"/></svg>
+    </button>
+    <button class="wc wc-maximize" onclick="window.sb.maximize()" title="Maximizar">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1"><rect x="0.5" y="0.5" width="9" height="9"/></svg>
+    </button>
+    <button class="wc wc-close"    onclick="window.sb.close()" title="Fechar">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><line x1="0" y1="0" x2="10" y2="10"/><line x1="10" y1="0" x2="0" y2="10"/></svg>
+    </button>
   </div>
 </div>
 
@@ -545,10 +649,10 @@ input[type=number] { width: 80px; flex: none; }
 
   <!-- Nav -->
   <nav class="nav">
-    <div class="nav-section">Principal</div>
+    <div class="nav-section">Operação</div>
     <div class="nav-item active" onclick="showPage('home')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Início
+      Painel
     </div>
     <div class="nav-item" onclick="showPage('server')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
@@ -557,14 +661,14 @@ input[type=number] { width: 80px; flex: none; }
     </div>
     <div class="nav-item" onclick="showPage('broadcast')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
-      Transmitir
+      Transmissão
     </div>
     <div class="nav-item" onclick="showPage('obs')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
-      OBS / Receiver
+      Integração OBS
     </div>
 
-    <div class="nav-section" style="margin-top:0.5rem">Configurações</div>
+    <div class="nav-section" style="margin-top:0.5rem">Sistema</div>
     <div class="nav-item" onclick="showPage('settings')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Configurações
@@ -576,54 +680,46 @@ input[type=number] { width: 80px; flex: none; }
 
     <!-- HOME -->
     <div class="page active" id="page-home">
-      <div class="page-title">Início rápido</div>
-      <div class="page-sub">Servidor rodando · clique em um dos modos abaixo</div>
+      <div class="page-title">Painel de Controle</div>
+      <div class="page-sub">Servidor ativo — pronto para transmitir</div>
 
-      <div class="launch-grid">
-        <div class="launch-card" onclick="launchBroadcaster()">
-          <div class="launch-icon broad">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8ff00" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
-          </div>
-          <div class="launch-title">Broadcaster</div>
-          <div class="launch-desc">Abrir transmissor no navegador (câmera + mic)</div>
+      <div class="card" style="text-align:center;padding:1.75rem 1.25rem">
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin-bottom:0.5rem">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+          <span style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted)">Servidor Online</span>
         </div>
-
-        <div class="launch-card" onclick="launchViewer()">
-          <div class="launch-icon view">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
-          </div>
-          <div class="launch-title">Viewer</div>
-          <div class="launch-desc">Abrir receptor no navegador (outro PC)</div>
+        <div style="font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:0.3rem">Transmitir Agora</div>
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-bottom:1.5rem">Abre o transmissor com as configurações atuais</div>
+        <button class="btn btn-accent" onclick="launchScreen()" style="font-size:0.8rem;padding:0.6rem 2rem;letter-spacing:0.05em">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Iniciar Transmissão
+        </button>
+        <div style="display:flex;justify-content:center;gap:0.5rem;margin-top:1rem">
+          <button class="btn btn-ghost" onclick="launchViewer()" style="font-size:0.62rem">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
+            Receptor
+          </button>
+          <button class="btn btn-ghost" onclick="copyOBSUrl()" style="font-size:0.62rem">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Copiar URL OBS
+          </button>
+          <button class="btn btn-ghost" onclick="showPage('broadcast')" style="font-size:0.62rem">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurar
+          </button>
         </div>
-
-        <div class="launch-card" onclick="copyOBSUrl()">
-          <div class="launch-icon obs">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3d5a" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-          </div>
-          <div class="launch-title">Copiar URL OBS</div>
-          <div class="launch-desc">URL pronta para Browser Source no OBS</div>
-        </div>
-
-        <div class="launch-card" onclick="launchScreen()">
-          <div class="launch-icon tela">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5dfc8a" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l5 4 5-4"/></svg>
-          </div>
-          <div class="launch-title">Tela inteira</div>
-          <div class="launch-desc">Broadcast da tela + áudio sistema</div>
-        </div>
-
       </div>
 
       <div class="card" style="margin-top:1rem">
-        <div class="card-title">URLs ativas</div>
+        <div class="card-title">Endpoints Ativos</div>
         <div class="url-box">
-          <div class="url-label">BROADCASTER</div>
+          <div class="url-label">TRANSMISSOR</div>
           <div class="url-text" id="urlBroadcast">—</div>
           <button class="copy-btn" onclick="copyUrl('broadcast')">Copiar</button>
           <button class="copy-btn" onclick="openUrl('broadcast')">Abrir</button>
         </div>
         <div class="url-box">
-          <div class="url-label">OBS / VIEWER</div>
+          <div class="url-label">OBS / RECEPTOR</div>
           <div class="url-text" id="urlOBS">—</div>
           <button class="copy-btn" onclick="copyUrl('obs')">Copiar</button>
         </div>
@@ -632,35 +728,35 @@ input[type=number] { width: 80px; flex: none; }
 
     <!-- SERVER -->
     <div class="page" id="page-server">
-      <div class="page-title">Servidor de sinalização</div>
-      <div class="page-sub">Gerencia a troca de informações entre peers (não transmite vídeo)</div>
+      <div class="page-title">Servidor WebRTC</div>
+      <div class="page-sub">Sinalização P2P — coordena a negociação entre peers sem trafegar vídeo</div>
 
       <div class="card">
-        <div class="card-title">Status</div>
+        <div class="card-title">Status da Instância</div>
         <div class="server-grid">
-          <div class="info-block"><div class="info-label">IP Local</div><div class="info-value" id="serverIP">—</div></div>
+          <div class="info-block"><div class="info-label">Endereço IP</div><div class="info-value" id="serverIP">—</div></div>
           <div class="info-block"><div class="info-label">Porta</div><div class="info-value" id="serverPortVal">4000</div></div>
-          <div class="info-block"><div class="info-label">Status</div><div class="info-value" id="serverStatusVal" style="color:var(--muted)">—</div></div>
-          <div class="info-block"><div class="info-label">Peers conectados</div><div class="info-value" id="serverPeers">0</div></div>
+          <div class="info-block"><div class="info-label">Estado</div><div class="info-value" id="serverStatusVal" style="color:var(--muted)">—</div></div>
+          <div class="info-block"><div class="info-label">Conexões Ativas</div><div class="info-value" id="serverPeers">0</div></div>
         </div>
         <div class="field-row">
           <div class="field-label">Porta</div>
           <input type="number" id="portInput" value="4000" min="1024" max="65535">
           <button class="btn btn-accent" onclick="restartServer()">Reiniciar</button>
-          <button class="btn btn-danger" onclick="stopServer()">Parar</button>
+          <button class="btn btn-danger" onclick="stopServer()">Encerrar</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">Salas ativas</div>
+        <div class="card-title">Canais Ativos</div>
         <table class="rooms-table" id="roomsTable">
-          <thead><tr><th>Sala</th><th>Peers</th></tr></thead>
-          <tbody id="roomsBody"><tr><td colspan="2" class="rooms-empty">Nenhuma sala ativa</td></tr></tbody>
+          <thead><tr><th>Canal</th><th>Peers</th></tr></thead>
+          <tbody id="roomsBody"><tr><td colspan="2" class="rooms-empty">Nenhum canal ativo</td></tr></tbody>
         </table>
       </div>
 
       <div class="card">
-        <div class="card-title">Log do servidor</div>
+        <div class="card-title">Log do Servidor</div>
         <div class="log-area" id="serverLog">
           <div class="log-line">// Aguardando conexões...</div>
         </div>
@@ -669,45 +765,59 @@ input[type=number] { width: 80px; flex: none; }
 
     <!-- BROADCAST -->
     <div class="page" id="page-broadcast">
-      <div class="page-title">Transmitir</div>
-      <div class="page-sub">Configure e inicie sua transmissão P2P</div>
+      <div class="page-title">Configurar Transmissão</div>
+      <div class="page-sub">Perfil de qualidade e canal de transmissão P2P</div>
 
       <div class="card">
-        <div class="card-title">Qualidade de saída</div>
+        <div class="card-title">Perfil de Qualidade</div>
         <div class="quality-grid">
           <div class="q-card" onclick="selectQuality('480p', this)">
             <div class="q-res">480p</div>
-            <div class="q-info">30fps · 1Mbps</div>
+            <div class="q-info">30fps · 1 Mbps</div>
           </div>
-          <div class="q-card selected" onclick="selectQuality('720p', this)">
+          <div class="q-card" onclick="selectQuality('720p', this)">
             <div class="q-res">720p</div>
-            <div class="q-info">30fps · 2.5Mbps</div>
+            <div class="q-info">30fps · 2.5 Mbps</div>
           </div>
-          <div class="q-card" onclick="selectQuality('1080p', this)">
+          <div class="q-card selected" onclick="selectQuality('1080p', this)">
             <div class="q-res">1080p</div>
-            <div class="q-info">30fps · 5Mbps</div>
+            <div class="q-info">60fps · 8 Mbps · câmera</div>
           </div>
           <div class="q-card" onclick="selectQuality('screen', this)">
             <div class="q-res">Tela</div>
-            <div class="q-info">60fps · 8Mbps</div>
+            <div class="q-info">60fps · 15 Mbps</div>
+          </div>
+          <div class="q-card" onclick="selectQuality('game', this)">
+            <div class="q-res">Jogo</div>
+            <div class="q-info">60fps · 20 Mbps</div>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">Sala de transmissão</div>
+        <div class="card-title">Microfone</div>
+        <div style="display:flex;align-items:center;gap:0.8rem">
+          <button class="btn btn-ghost" id="micTestBtn" onclick="toggleMicTest()" style="font-size:0.65rem;padding:0.35rem 0.9rem;flex-shrink:0">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+            Testar
+          </button>
+          <div style="flex:1;display:flex;flex-direction:column;gap:0.35rem">
+            <div style="display:flex;gap:2px;align-items:flex-end;height:28px" id="micBars"></div>
+            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted)" id="micLabel">Clique em Testar para verificar o áudio</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Canal de Transmissão</div>
         <div class="field-row">
-          <div class="field-label">Nome da sala</div>
-          <input type="text" id="roomName" value="minha-sala" placeholder="ex: stream1">
+          <div class="field-label">Identificador</div>
+          <input type="text" id="roomName" value="minha-sala" placeholder="ex: studio-1">
         </div>
         <div class="btn-row">
-          <button class="btn btn-accent" onclick="launchBroadcaster()">
+          <button class="btn btn-accent" onclick="launchWithQuality()">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Abrir Broadcaster
-          </button>
-          <button class="btn btn-blue" onclick="launchScreen()">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-            Compartilhar Tela
+            Iniciar
           </button>
         </div>
       </div>
@@ -715,8 +825,8 @@ input[type=number] { width: 80px; flex: none; }
 
     <!-- OBS -->
     <div class="page" id="page-obs">
-      <div class="page-title">OBS / Receiver</div>
-      <div class="page-sub">Como usar o stream no OBS Studio</div>
+      <div class="page-title">Integração OBS</div>
+      <div class="page-sub">URLs para Browser Source e guia de configuração no OBS Studio</div>
 
       <div class="card">
         <div class="card-title">Browser Source — Tela</div>
@@ -742,42 +852,42 @@ input[type=number] { width: 80px; flex: none; }
 
 
       <div class="card">
-        <div class="card-title">Configuração no OBS Studio</div>
+        <div class="card-title">Guia de Configuração OBS</div>
         <div class="guide-steps">
           <div class="guide-step">
             <div class="step-num">1</div>
             <div class="step-content">
-              <div class="step-title">Adicionar fonte Browser</div>
-              <div class="step-desc">No OBS, clique em <strong>+</strong> na lista de fontes → selecione <strong>Browser Source</strong></div>
+              <div class="step-title">Adicionar Browser Source</div>
+              <div class="step-desc">No OBS, clique em <strong>+</strong> na lista de fontes → selecione <strong>Browser</strong></div>
             </div>
           </div>
           <div class="guide-step">
             <div class="step-num">2</div>
             <div class="step-content">
-              <div class="step-title">Inserir a URL</div>
-              <div class="step-desc">Cole a URL acima no campo URL:</div>
+              <div class="step-title">Cole a URL</div>
+              <div class="step-desc">Insira a URL da Tela no campo URL da fonte:</div>
               <div class="step-code" id="obsUrlCode">—</div>
             </div>
           </div>
           <div class="guide-step">
             <div class="step-num">3</div>
             <div class="step-content">
-              <div class="step-title">Dimensões</div>
-              <div class="step-desc">Largura: <strong>1920</strong> · Altura: <strong>1080</strong> (ou a resolução da sua stream)</div>
+              <div class="step-title">Resolução</div>
+              <div class="step-desc">Largura: <strong>1920</strong> · Altura: <strong>1080</strong> · Corresponde ao perfil de qualidade selecionado</div>
             </div>
           </div>
           <div class="guide-step">
             <div class="step-num">4</div>
             <div class="step-content">
-              <div class="step-title">Áudio</div>
-              <div class="step-desc">Marque ✅ <strong>Controlar áudio via OBS</strong> para mixer independente no OBS</div>
+              <div class="step-title">Câmera (overlay)</div>
+              <div class="step-desc">Adicione uma segunda Browser Source com a URL da Câmera, posicione acima da tela e redimensione no canto desejado</div>
             </div>
           </div>
           <div class="guide-step">
             <div class="step-num">5</div>
             <div class="step-content">
-              <div class="step-title">Pronto!</div>
-              <div class="step-desc">Inicie o Broadcaster no outro PC e o stream aparecerá automaticamente nessa fonte.</div>
+              <div class="step-title">Áudio</div>
+              <div class="step-desc">Marque <strong>Controlar áudio via OBS</strong> para roteamento independente no mixer</div>
             </div>
           </div>
         </div>
@@ -787,32 +897,32 @@ input[type=number] { width: 80px; flex: none; }
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="page-title">Configurações</div>
-      <div class="page-sub">Preferências do StreamBridge</div>
+      <div class="page-sub">Preferências de rede e conectividade do StreamBridge</div>
 
       <div class="card">
-        <div class="card-title">Servidor</div>
+        <div class="card-title">Servidor Local</div>
         <div class="field-row">
-          <div class="field-label">Porta padrão</div>
+          <div class="field-label">Porta</div>
           <input type="number" id="defaultPort" value="4000" min="1024" max="65535">
         </div>
         <div class="field-row">
-          <div class="field-label">Sala padrão</div>
+          <div class="field-label">Canal Padrão</div>
           <input type="text" id="defaultRoom" value="minha-sala">
         </div>
         <div class="field-row">
-          <div class="field-label">Host público</div>
-          <input type="text" id="publicHost" placeholder="ex: 123.45.67.89 ou meudominio.com">
+          <div class="field-label">IP Público</div>
+          <input type="text" id="publicHost" placeholder="ex: 203.0.113.1 ou stream.meusite.com">
         </div>
-        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.25rem">
-          IP ou domínio externo usado para gerar a URL OBS/Viewer quando fora da rede local.
+        <div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.1rem;line-height:1.6">
+          Endereço externo utilizado para gerar as URLs de Receptor e OBS quando acessadas fora da rede local.
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">TURN Server (para conexões via Internet)</div>
+        <div class="card-title">TURN Server — Relay para Internet</div>
         <div class="field-row">
-          <div class="field-label">URL</div>
-          <input type="text" id="turnUrl" placeholder="turn:seu-servidor:3478">
+          <div class="field-label">Endpoint</div>
+          <input type="text" id="turnUrl" placeholder="turn:relay.servidor.com:3478">
         </div>
         <div class="field-row">
           <div class="field-label">Usuário</div>
@@ -820,15 +930,18 @@ input[type=number] { width: 80px; flex: none; }
         </div>
         <div class="field-row">
           <div class="field-label">Senha</div>
-          <input type="text" id="turnPass" placeholder="senha">
+          <input type="text" id="turnPass" placeholder="••••••••">
         </div>
-        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem">
-          Necessário apenas para conectar PCs em redes diferentes (Internet). Para rede local, deixe vazio.
+        <div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.1rem;line-height:1.6">
+          Necessário somente para conexões P2P entre redes distintas (Internet). Deixe vazio para rede local.
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-accent" onclick="saveSettings()">Salvar configurações</button>
+        <button class="btn btn-accent" onclick="saveSettings()">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar Configurações
+        </button>
       </div>
     </div>
 
@@ -843,7 +956,7 @@ input[type=number] { width: 80px; flex: none; }
 // ─────────────────────────────────────────────────────────────────────────────
 let serverIP   = '127.0.0.1';
 let serverPort = 4000;
-let quality    = '720p';
+let quality    = '1080p';
 let room       = 'minha-sala';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -908,10 +1021,12 @@ function getRoomName() {
 // Navigation
 // ─────────────────────────────────────────────────────────────────────────────
 function showPage(id) {
+  if (id !== 'broadcast') stopMicTest();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id)?.classList.add('active');
   event?.currentTarget?.classList.add('active');
+  if (id === 'broadcast') _buildBars();
   updateURLs();
 }
 
@@ -951,12 +1066,98 @@ function updateRoomsTable(rooms) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Launch
 // ─────────────────────────────────────────────────────────────────────────────
-function launchBroadcaster() {
-  const r = getRoomName();
-  const q = quality;
+function launchWithQuality() {
+  const r    = getRoomName();
   const turn = buildTurnParams(getSettings());
-  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=${q}${turn}`);
-  slog(`Broadcaster aberto: sala "${r}" · ${q}`, 'info');
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=${quality}${turn}`);
+  slog(`Transmissão iniciada: canal "${r}" · ${quality}`, 'info');
+}
+
+function launchBroadcaster() {
+  launchWithQuality();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mic Level Meter
+// ─────────────────────────────────────────────────────────────────────────────
+let _micCtx = null, _micStream = null, _micRaf = null;
+const MIC_BARS = 32;
+
+function _buildBars() {
+  const container = document.getElementById('micBars');
+  container.innerHTML = '';
+  for (let i = 0; i < MIC_BARS; i++) {
+    const b = document.createElement('div');
+    b.style.cssText = 'width:4px;border-radius:2px;background:var(--border);transition:height 0.05s;height:4px;flex-shrink:0';
+    container.appendChild(b);
+  }
+}
+
+async function toggleMicTest() {
+  if (_micStream) {
+    stopMicTest();
+    return;
+  }
+  const btn = document.getElementById('micTestBtn');
+  try {
+    _micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    _micCtx    = new AudioContext();
+    const source   = _micCtx.createMediaStreamSource(_micStream);
+    const analyser = _micCtx.createAnalyser();
+    analyser.fftSize = 64;
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    _buildBars();
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Parar';
+    btn.style.color = 'var(--accent)';
+    document.getElementById('micLabel').textContent = 'Captando áudio…';
+
+    const bars = document.getElementById('micBars').children;
+    function draw() {
+      _micRaf = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(data);
+      let peak = 0;
+      for (let i = 0; i < data.length; i++) peak = Math.max(peak, data[i]);
+      for (let i = 0; i < MIC_BARS; i++) {
+        const v  = data[i] || 0;
+        const h  = Math.max(3, Math.round((v / 255) * 28));
+        const pct = v / 255;
+        const color = pct > 0.75 ? 'var(--red)' : pct > 0.4 ? 'var(--accent)' : 'var(--green)';
+        bars[i].style.height = h + 'px';
+        bars[i].style.background = v > 4 ? color : 'var(--border)';
+      }
+      const db = peak > 0 ? Math.round(20 * Math.log10(peak / 255)) : -Infinity;
+      document.getElementById('micLabel').textContent = peak > 4
+        ? `Sinal detectado · ${db} dB`
+        : 'Silêncio — fale para testar';
+    }
+    draw();
+  } catch (e) {
+    document.getElementById('micLabel').textContent = 'Permissão negada ou microfone não encontrado.';
+  }
+}
+
+function stopMicTest() {
+  if (_micRaf) cancelAnimationFrame(_micRaf);
+  if (_micStream) { _micStream.getTracks().forEach(t => t.stop()); _micStream = null; }
+  if (_micCtx)   { _micCtx.close(); _micCtx = null; }
+  _micRaf = null;
+  _buildBars();
+  const btn = document.getElementById('micTestBtn');
+  if (btn) {
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="9" y1="22" x2="15" y2="22"/></svg> Testar';
+    btn.style.color = '';
+  }
+  const lbl = document.getElementById('micLabel');
+  if (lbl) lbl.textContent = 'Clique em Testar para iniciar';
+}
+
+function launchScreen() {
+  const r    = getRoomName();
+  const turn = buildTurnParams(getSettings());
+  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=screen${turn}`);
+  slog(`Transmissão iniciada: canal "${r}" · tela`, 'info');
 }
 
 function launchViewer() {
@@ -965,12 +1166,6 @@ function launchViewer() {
   window.sb.openBrowser(`http://localhost:${serverPort}/?role=viewer&room=${encodeURIComponent(r)}${turn}`);
 }
 
-function launchScreen() {
-  const r = getRoomName();
-  const turn = buildTurnParams(getSettings());
-  window.sb.openBrowser(`http://localhost:${serverPort}/?role=broadcaster&room=${encodeURIComponent(r)}&quality=screen${turn}`);
-  slog(`Screen share aberto: sala "${r}"`, 'info');
-}
 
 function copyOBSUrl() {
   const r    = getRoomName();
