@@ -616,6 +616,123 @@ input::placeholder { color: var(--muted); opacity: 0.6; }
   transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
 }
 .toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── AUDIO MIXER ─────────────────────────────────────────────────────────── */
+.mixer-section-title {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin: 0.6rem 0 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mixer-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.mixer-strips { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; }
+
+/* ── Channel strip ── */
+.strip {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 8px 6px;
+  min-width: 108px; flex: 1; gap: 5px;
+}
+.strip-label {
+  font-family: var(--mono); font-size: 0.52rem;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent);
+}
+.strip-src-btn {
+  font-family: var(--mono); font-size: 0.48rem;
+  background: var(--s2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); padding: 3px 6px; cursor: pointer;
+  width: 100%; text-align: center; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; transition: all 0.15s;
+}
+.strip-src-btn:hover { background: var(--s3); color: var(--text); }
+.strip-src-btn.connected { color: var(--green); border-color: var(--green); }
+.strip-dev-sel {
+  font-family: var(--mono); font-size: 0.47rem;
+  background: var(--s2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); padding: 3px 4px; cursor: pointer;
+  width: 100%; appearance: none;
+}
+.strip-dev-sel:focus { outline: none; border-color: var(--accent); }
+.strip-dev-sel.connected { color: var(--green); border-color: var(--green); }
+
+/* ── VU meter ── */
+.vu-wrap {
+  display: flex; align-items: flex-end; gap: 2px;
+  height: 56px; width: 100%; padding: 0 4px;
+}
+.vu-bar {
+  flex: 1; background: var(--s3); border-radius: 2px 2px 0 0;
+  position: relative; overflow: hidden; height: 100%;
+}
+.vu-fill {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 0%;
+  background: linear-gradient(to top, #4ade80 0%, #a3e635 55%, #fb923c 80%, #ef4444 100%);
+  border-radius: 2px 2px 0 0; transition: height 0.06s ease-out;
+}
+
+/* ── Fader ── */
+.fader-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; }
+.fader-val { font-family: var(--mono); font-size: 0.5rem; color: var(--muted); }
+.fader-input {
+  writing-mode: vertical-lr; direction: rtl;
+  -webkit-appearance: slider-vertical; appearance: slider-vertical;
+  width: 100%; height: 76px; cursor: pointer; accent-color: var(--accent);
+}
+.out-strip   .fader-input { accent-color: var(--orange); }
+.out-virt    .fader-input { accent-color: #a855f7; }
+
+/* ── Mute ── */
+.mute-btn {
+  font-family: var(--mono); font-size: 0.48rem; text-transform: uppercase;
+  letter-spacing: 0.08em; background: var(--s2); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--muted); padding: 4px 0;
+  cursor: pointer; width: 100%; transition: all 0.15s;
+}
+.mute-btn:hover { background: var(--s3); }
+.mute-btn.muted { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* ── Routing grid ── */
+.route-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; width: 100%; margin-top: 2px;
+}
+.route-btn {
+  font-family: var(--mono); font-size: 0.44rem; text-align: center;
+  padding: 3px 2px; border-radius: 3px; border: 1px solid var(--border);
+  background: var(--s2); color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.route-btn:hover { background: var(--s3); color: var(--text); }
+.route-btn.on-phys { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+.route-btn.on-virt { background: #a855f7; border-color: #a855f7; color: #fff; font-weight: 700; }
+
+/* ── Output strip labels ── */
+.out-strip  .strip-label { color: var(--orange); }
+.out-virt   .strip-label { color: #a855f7; }
+.virt-badge {
+  font-family: var(--mono); font-size: 0.44rem; text-transform: uppercase;
+  background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.35);
+  color: #a855f7; border-radius: 3px; padding: 2px 5px; text-align: center; width: 100%;
+}
+.out-dev-sel {
+  font-family: var(--mono); font-size: 0.47rem;
+  background: var(--s2); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--muted); padding: 3px 4px; cursor: pointer;
+  width: 100%; appearance: none;
+}
+.out-dev-sel:focus { outline: none; border-color: var(--orange); }
+
+.mixer-note {
+  font-family: var(--mono); font-size: 0.5rem; color: var(--muted);
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.55rem 0.75rem;
+  line-height: 1.65; margin-top: 0.4rem;
+}
+.mixer-note strong { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -666,6 +783,11 @@ input::placeholder { color: var(--muted); opacity: 0.6; }
     <div class="nav-item" onclick="showPage('obs')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/></svg>
       Integração OBS
+    </div>
+
+    <div class="nav-item" onclick="showPage('mixer')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="18"/><circle cx="8" cy="10" r="2.5"/><circle cx="16" cy="14" r="2.5"/></svg>
+      Mixer de Áudio
     </div>
 
     <div class="nav-section" style="margin-top:0.5rem">Sistema</div>
@@ -997,6 +1119,178 @@ input::placeholder { color: var(--muted); opacity: 0.6; }
       </div>
     </div>
 
+    <!-- MIXER DE ÁUDIO -->
+    <div class="page" id="page-mixer">
+      <div class="page-title">Mixer de Áudio</div>
+      <div class="page-sub">Roteamento e controle de volume por canal — estilo VoiceMeeter</div>
+
+      <!-- ENTRADAS -->
+      <div class="mixer-section-title">Entradas</div>
+      <div class="mixer-strips" id="mixerInputStrips">
+
+        <!-- MÚSICA -->
+        <div class="strip" id="strip-music">
+          <div class="strip-label">Música</div>
+          <button class="strip-src-btn" id="musicBtn" onclick="mxPickMusic()">Selecionar arquivo</button>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-music-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-music-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetInLevel('music',this.value)">
+            <div class="fader-val" id="fval-in-music">80</div>
+          </div>
+          <button class="mute-btn" id="mute-in-music" onclick="mxToggleInMute('music',this)">Mute</button>
+          <div class="route-grid" id="routes-music"></div>
+        </div>
+
+        <!-- MICROFONE -->
+        <div class="strip" id="strip-mic">
+          <div class="strip-label">Microfone</div>
+          <select class="strip-dev-sel" id="micDevSel" onchange="mxConnectMic(this.value)">
+            <option value="">-- selecionar --</option>
+          </select>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-mic-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-mic-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetInLevel('mic',this.value)">
+            <div class="fader-val" id="fval-in-mic">80</div>
+          </div>
+          <button class="mute-btn" id="mute-in-mic" onclick="mxToggleInMute('mic',this)">Mute</button>
+          <div class="route-grid" id="routes-mic"></div>
+        </div>
+
+        <!-- PC AUDIO -->
+        <div class="strip" id="strip-pc">
+          <div class="strip-label">PC Audio</div>
+          <button class="strip-src-btn" id="pcBtn" onclick="mxConnectPC()">Capturar sistema</button>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-pc-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-pc-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetInLevel('pc',this.value)">
+            <div class="fader-val" id="fval-in-pc">80</div>
+          </div>
+          <button class="mute-btn" id="mute-in-pc" onclick="mxToggleInMute('pc',this)">Mute</button>
+          <div class="route-grid" id="routes-pc"></div>
+        </div>
+
+        <!-- BATE-PAPO -->
+        <div class="strip" id="strip-chat">
+          <div class="strip-label">Bate-papo</div>
+          <select class="strip-dev-sel" id="chatDevSel" onchange="mxConnectChat(this.value)">
+            <option value="">-- selecionar --</option>
+          </select>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-chat-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-in-chat-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetInLevel('chat',this.value)">
+            <div class="fader-val" id="fval-in-chat">80</div>
+          </div>
+          <button class="mute-btn" id="mute-in-chat" onclick="mxToggleInMute('chat',this)">Mute</button>
+          <div class="route-grid" id="routes-chat"></div>
+        </div>
+
+      </div><!-- /inputStrips -->
+
+      <!-- SAÍDAS -->
+      <div class="mixer-section-title" style="margin-top:0.9rem">Saídas</div>
+      <div class="mixer-strips" id="mixerOutputStrips">
+
+        <!-- A1 -->
+        <div class="strip out-strip" id="strip-A1">
+          <div class="strip-label">A1 · Física</div>
+          <select class="out-dev-sel" id="outDevA1" onchange="mxSetOutDevice('A1',this.value)">
+            <option value="default">Padrão do sistema</option>
+          </select>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-A1-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-A1-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetOutLevel('A1',this.value)">
+            <div class="fader-val" id="fval-out-A1">80</div>
+          </div>
+          <button class="mute-btn" id="mute-out-A1" onclick="mxToggleOutMute('A1',this)">Mute</button>
+        </div>
+
+        <!-- A2 -->
+        <div class="strip out-strip" id="strip-A2">
+          <div class="strip-label">A2 · Física</div>
+          <select class="out-dev-sel" id="outDevA2" onchange="mxSetOutDevice('A2',this.value)">
+            <option value="">-- selecionar --</option>
+          </select>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-A2-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-A2-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetOutLevel('A2',this.value)">
+            <div class="fader-val" id="fval-out-A2">80</div>
+          </div>
+          <button class="mute-btn" id="mute-out-A2" onclick="mxToggleOutMute('A2',this)">Mute</button>
+        </div>
+
+        <!-- A3 -->
+        <div class="strip out-strip" id="strip-A3">
+          <div class="strip-label">A3 · Física</div>
+          <select class="out-dev-sel" id="outDevA3" onchange="mxSetOutDevice('A3',this.value)">
+            <option value="">-- selecionar --</option>
+          </select>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-A3-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-A3-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetOutLevel('A3',this.value)">
+            <div class="fader-val" id="fval-out-A3">80</div>
+          </div>
+          <button class="mute-btn" id="mute-out-A3" onclick="mxToggleOutMute('A3',this)">Mute</button>
+        </div>
+
+        <!-- B1 Virtual -->
+        <div class="strip out-virt" id="strip-B1">
+          <div class="strip-label">B1 · Virtual</div>
+          <div class="virt-badge">Cabo Virtual 1</div>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-B1-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-B1-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetOutLevel('B1',this.value)">
+            <div class="fader-val" id="fval-out-B1">80</div>
+          </div>
+          <button class="mute-btn" id="mute-out-B1" onclick="mxToggleOutMute('B1',this)">Mute</button>
+        </div>
+
+        <!-- B2 Virtual -->
+        <div class="strip out-virt" id="strip-B2">
+          <div class="strip-label">B2 · Virtual</div>
+          <div class="virt-badge">Cabo Virtual 2</div>
+          <div class="vu-wrap">
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-B2-L"></div></div>
+            <div class="vu-bar"><div class="vu-fill" id="vu-out-B2-R"></div></div>
+          </div>
+          <div class="fader-wrap">
+            <input class="fader-input" type="range" min="0" max="100" value="80" oninput="mxSetOutLevel('B2',this.value)">
+            <div class="fader-val" id="fval-out-B2">80</div>
+          </div>
+          <button class="mute-btn" id="mute-out-B2" onclick="mxToggleOutMute('B2',this)">Mute</button>
+        </div>
+
+      </div><!-- /outputStrips -->
+
+      <div class="mixer-note">
+        <strong>Cabos Virtuais B1/B2</strong> são barramentos internos — o áudio misturado fica disponível como MediaStream para uso em transmissões WebRTC.<br>
+        Para separar áudios do Windows por aplicativo, instale o <strong>VB-Cable</strong> (gratuito) — os dispositivos CABLE Input/Output aparecem automaticamente nos seletores acima.
+      </div>
+    </div><!-- /page-mixer -->
+
   </div><!-- /pages -->
 </div><!-- /layout -->
 
@@ -1167,6 +1461,7 @@ function showPage(id) {
   document.getElementById('page-' + id)?.classList.add('active');
   event?.currentTarget?.classList.add('active');
   if (id === 'broadcast') _buildBars();
+  if (id === 'mixer') mxActivate();
   updateURLs();
 }
 
@@ -1428,7 +1723,500 @@ function toast(msg) {
 document.addEventListener('DOMContentLoaded', () => {
   init();
   document.getElementById('roomName')?.addEventListener('input', updateURLs);
+  mxInit();
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audio Mixer Engine
+// ─────────────────────────────────────────────────────────────────────────────
+const MX_INPUTS  = ['music', 'mic', 'pc', 'chat'];
+const MX_OUTPUTS = ['A1', 'A2', 'A3', 'B1', 'B2'];
+
+let mxCtx = null;
+// mxIn[key]  = { gain, splitterL, splitterR, analyserL, analyserR, node, stream, level, muted, routes: Set }
+// mxOut[key] = { gain, analyserL, analyserR, dest, audioEl, level, muted, deviceId }
+const mxIn  = {};
+const mxOut = {};
+
+function mxEnsureCtx() {
+  if (!mxCtx || mxCtx.state === 'closed') {
+    mxCtx = new AudioContext({ sampleRate: 48000, latencyHint: 'interactive' });
+  }
+  if (mxCtx.state === 'suspended') mxCtx.resume();
+  return mxCtx;
+}
+
+function mxBootOutputs() {
+  const ctx = mxEnsureCtx();
+  for (const key of MX_OUTPUTS) {
+    if (mxOut[key]) continue;
+    // Read saved config so initial values are correct on first boot
+    const sc    = _mxSavedConfig?.outputs?.[key];
+    const level = sc?.level ?? 80;
+    const muted = sc?.muted ?? false;
+
+    const gain     = ctx.createGain();
+    const splitter = ctx.createChannelSplitter(2);
+    const aL = ctx.createAnalyser(); aL.fftSize = 256;
+    const aR = ctx.createAnalyser(); aR.fftSize = 256;
+    gain.connect(splitter);
+    splitter.connect(aL, 0);
+    splitter.connect(aR, 1);
+    gain.gain.value = muted ? 0 : level / 100;
+
+    const deviceId = sc?.deviceId ?? (key === 'A1' ? 'default' : '');
+    let dest = null, outCtx = null;
+
+    if (key.startsWith('A')) {
+      // Saída física: bridge mxCtx → MediaStreamDest → outCtx separado
+      // outCtx.setSinkId() controla qual dispositivo toca
+      dest   = ctx.createMediaStreamDestination();
+      gain.connect(dest);
+      outCtx = new AudioContext({ sampleRate: 48000, latencyHint: 'interactive' });
+      const bridgeSrc = outCtx.createMediaStreamSource(dest.stream);
+      bridgeSrc.connect(outCtx.destination);
+      outCtx.resume().catch(() => {});
+      // Aplica dispositivo salvo imediatamente
+      if (deviceId && deviceId !== 'default' && typeof outCtx.setSinkId === 'function') {
+        outCtx.setSinkId(deviceId).catch(() => {});
+      }
+    } else {
+      // B1/B2: virtual — stream disponível para WebRTC
+      dest = ctx.createMediaStreamDestination();
+      gain.connect(dest);
+    }
+
+    mxOut[key] = { gain, analyserL: aL, analyserR: aR, dest, outCtx, level, muted, deviceId };
+  }
+}
+
+function mxBootInput(key) {
+  if (mxIn[key]) return mxIn[key];
+  mxBootOutputs();
+  // Read saved config so initial values (including routes) are correct on first boot
+  const sc     = _mxSavedConfig?.inputs?.[key];
+  const level  = sc?.level  ?? 80;
+  const muted  = sc?.muted  ?? false;
+  const routes = new Set(sc?.routes ?? ['A1']);
+
+  const ctx = mxEnsureCtx();
+  const gain = ctx.createGain();
+  const splitter = ctx.createChannelSplitter(2);
+  const aL = ctx.createAnalyser(); aL.fftSize = 256;
+  const aR = ctx.createAnalyser(); aR.fftSize = 256;
+  gain.connect(splitter);
+  splitter.connect(aL, 0);
+  splitter.connect(aR, 1);
+  gain.gain.value = muted ? 0 : level / 100;
+
+  mxIn[key] = { gain, splitter, analyserL: aL, analyserR: aR, node: null, stream: null, level, muted, routes };
+  mxRewire(key);
+  return mxIn[key];
+}
+
+function mxRewire(inputKey) {
+  const inp = mxIn[inputKey];
+  if (!inp) return;
+  for (const ok of MX_OUTPUTS) {
+    const out = mxOut[ok];
+    if (!out) continue;
+    try { inp.gain.disconnect(out.gain); } catch {}
+  }
+  for (const ok of inp.routes) {
+    const out = mxOut[ok];
+    if (out) inp.gain.connect(out.gain);
+  }
+}
+
+function mxAttachStream(key, stream) {
+  const ctx = mxEnsureCtx();
+  const inp = mxBootInput(key);
+  if (inp.node) { try { inp.node.disconnect(); } catch {} }
+  if (inp.stream) inp.stream.getTracks().forEach(t => t.stop());
+  const src = ctx.createMediaStreamSource(stream);
+  src.connect(inp.gain);
+  inp.node = src;
+  inp.stream = stream;
+}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+function mxSetInLevel(key, val) {
+  val = +val;
+  const inp = mxBootInput(key);
+  inp.level = val;
+  if (inp.gain) inp.gain.gain.value = inp.muted ? 0 : val / 100;
+  const el = document.getElementById('fval-in-' + key);
+  if (el) el.textContent = val;
+  mxSaveState();
+}
+
+function mxToggleInMute(key, btn) {
+  const inp = mxBootInput(key);
+  inp.muted = !inp.muted;
+  if (inp.gain) inp.gain.gain.value = inp.muted ? 0 : inp.level / 100;
+  btn.classList.toggle('muted', inp.muted);
+  btn.textContent = inp.muted ? 'Muted' : 'Mute';
+  mxSaveState();
+}
+
+// ── Outputs ───────────────────────────────────────────────────────────────────
+function mxSetOutLevel(key, val) {
+  val = +val;
+  mxBootOutputs();
+  const out = mxOut[key]; if (!out) return;
+  out.level = val;
+  if (out.gain) out.gain.gain.value = out.muted ? 0 : val / 100;
+  const el = document.getElementById('fval-out-' + key);
+  if (el) el.textContent = val;
+  mxSaveState();
+}
+
+function mxToggleOutMute(key, btn) {
+  mxBootOutputs();
+  const out = mxOut[key]; if (!out) return;
+  out.muted = !out.muted;
+  if (out.gain) out.gain.gain.value = out.muted ? 0 : out.level / 100;
+  btn.classList.toggle('muted', out.muted);
+  btn.textContent = out.muted ? 'Muted' : 'Mute';
+  mxSaveState();
+}
+
+async function mxSetOutDevice(key, deviceId) {
+  mxBootOutputs();
+  const out = mxOut[key];
+  if (!out || !out.dest) return;
+  out.deviceId = deviceId;
+
+  try {
+    const sinkId = (deviceId && deviceId !== 'default') ? deviceId : '';
+    // Recria o outCtx com setSinkId definido antes de conectar os nós
+    const newCtx    = new AudioContext({ sampleRate: 48000, latencyHint: 'interactive' });
+    if (sinkId && typeof newCtx.setSinkId === 'function') {
+      await newCtx.setSinkId(sinkId);
+    }
+    const bridgeSrc = newCtx.createMediaStreamSource(out.dest.stream);
+    bridgeSrc.connect(newCtx.destination);
+    await newCtx.resume();
+    if (out.outCtx) { try { await out.outCtx.close(); } catch {} }
+    out.outCtx = newCtx;
+    toast(key + ' → ' + (deviceId === 'default' ? 'padrão do sistema' : 'dispositivo selecionado'));
+    mxSaveState();
+  } catch (e) {
+    toast('Erro ' + key + ': ' + e.message);
+  }
+}
+
+// ── Routing ───────────────────────────────────────────────────────────────────
+function mxToggleRoute(inKey, outKey, btn) {
+  const inp = mxBootInput(inKey);
+  if (inp.routes.has(outKey)) {
+    inp.routes.delete(outKey);
+    btn.classList.remove('on-phys', 'on-virt');
+  } else {
+    inp.routes.add(outKey);
+    btn.classList.add(outKey.startsWith('B') ? 'on-virt' : 'on-phys');
+  }
+  mxRewire(inKey);
+  mxSaveState();
+}
+
+// ── Source connections ────────────────────────────────────────────────────────
+function mxPickMusic() {
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = 'audio/*';
+  picker.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const ctx = mxEnsureCtx();
+      const inp = mxBootInput('music');
+      if (inp.node) { try { inp.node.disconnect(); } catch {} }
+      const url = URL.createObjectURL(file);
+      const el  = new Audio(url);
+      el.loop   = true;
+      el.volume = 1;
+      const src = ctx.createMediaElementSource(el);
+      src.connect(inp.gain);
+      inp.node = src;
+      el.play().catch(() => {});
+      const btn = document.getElementById('musicBtn');
+      if (btn) { btn.textContent = file.name.slice(0, 20); btn.classList.add('connected'); }
+      toast('Música carregada!');
+    } catch (e2) { toast('Erro: ' + e2.message); }
+  };
+  picker.click();
+}
+
+async function mxConnectMic(deviceId) {
+  if (!deviceId) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: { exact: deviceId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+    mxAttachStream('mic', stream);
+    document.getElementById('micDevSel')?.classList.add('connected');
+    toast('Microfone conectado!');
+    mxSaveState();
+  } catch (e) { toast('Erro microfone: ' + e.message); }
+}
+
+async function mxConnectPC() {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
+    stream.getVideoTracks().forEach(t => t.stop());
+    if (!stream.getAudioTracks().length) {
+      toast('Nenhum áudio de sistema capturado. Marque "Compartilhar áudio" na caixa de diálogo.');
+      return;
+    }
+    mxAttachStream('pc', stream);
+    const btn = document.getElementById('pcBtn');
+    if (btn) { btn.textContent = 'PC conectado ✓'; btn.classList.add('connected'); }
+    toast('Áudio do PC capturado!');
+    stream.getAudioTracks()[0].onended = () => {
+      const b = document.getElementById('pcBtn');
+      if (b) { b.textContent = 'Capturar sistema'; b.classList.remove('connected'); }
+    };
+  } catch (e) {
+    if (e.name !== 'NotAllowedError') toast('Erro PC: ' + e.message);
+  }
+}
+
+async function mxConnectChat(deviceId) {
+  if (!deviceId) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: { exact: deviceId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+    mxAttachStream('chat', stream);
+    document.getElementById('chatDevSel')?.classList.add('connected');
+    toast('Bate-papo conectado!');
+    mxSaveState();
+  } catch (e) { toast('Erro bate-papo: ' + e.message); }
+}
+
+// ── Device enumeration ────────────────────────────────────────────────────────
+async function mxEnumerateDevices() {
+  try {
+    // Request permission so labels are available
+    await navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(s => s.getTracks().forEach(t => t.stop())).catch(() => {});
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const ins  = devices.filter(d => d.kind === 'audioinput');
+    const outs = devices.filter(d => d.kind === 'audiooutput');
+
+    ['micDevSel', 'chatDevSel'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">-- selecionar --</option>';
+      ins.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d.deviceId;
+        o.textContent = d.label || 'Entrada ' + d.deviceId.slice(0, 6);
+        sel.appendChild(o);
+      });
+      sel.value = cur;
+    });
+
+    ['A1', 'A2', 'A3'].forEach(key => {
+      const sel = document.getElementById('outDev' + key);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="default">Padrão do sistema</option>';
+      outs.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d.deviceId;
+        o.textContent = d.label || 'Saída ' + d.deviceId.slice(0, 6);
+        sel.appendChild(o);
+      });
+      sel.value = cur;
+    });
+
+    // After populating selects, apply saved state if pending
+    await mxApplyPendingLoad();
+  } catch (e) { console.warn('mxEnumerateDevices:', e); }
+}
+
+// ── Build routing buttons ─────────────────────────────────────────────────────
+function mxBuildRouteButtons() {
+  for (const inKey of MX_INPUTS) {
+    const container = document.getElementById('routes-' + inKey);
+    if (!container) continue;
+    container.innerHTML = '';
+    for (const outKey of MX_OUTPUTS) {
+      const btn = document.createElement('button');
+      btn.className   = 'route-btn' + (outKey === 'A1' ? ' on-phys' : '');
+      btn.textContent = outKey;
+      btn.onclick     = () => mxToggleRoute(inKey, outKey, btn);
+      container.appendChild(btn);
+    }
+  }
+}
+
+// ── VU meter animation ────────────────────────────────────────────────────────
+let mxVuActive = false;
+
+function mxRMS(analyser) {
+  if (!analyser) return 0;
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+  let s = 0;
+  for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+  return Math.sqrt(s / buf.length);
+}
+
+function mxDbPct(rms) {
+  if (rms < 0.0001) return 0;
+  const db = 20 * Math.log10(rms);
+  return Math.max(0, Math.min(100, (db + 60) / 60 * 100));
+}
+
+function mxSetVuEl(id, pct) {
+  const el = document.getElementById(id);
+  if (el) el.style.height = pct.toFixed(1) + '%';
+}
+
+function mxVuLoop() {
+  if (!document.getElementById('page-mixer')?.classList.contains('active')) {
+    mxVuActive = false;
+    return;
+  }
+  for (const k of MX_INPUTS) {
+    const i = mxIn[k];
+    mxSetVuEl('vu-in-' + k + '-L', i ? mxDbPct(mxRMS(i.analyserL)) : 0);
+    mxSetVuEl('vu-in-' + k + '-R', i ? mxDbPct(mxRMS(i.analyserR)) : 0);
+  }
+  for (const k of MX_OUTPUTS) {
+    const o = mxOut[k];
+    mxSetVuEl('vu-out-' + k + '-L', o ? mxDbPct(mxRMS(o.analyserL)) : 0);
+    mxSetVuEl('vu-out-' + k + '-R', o ? mxDbPct(mxRMS(o.analyserR)) : 0);
+  }
+  requestAnimationFrame(mxVuLoop);
+}
+
+// ── Page activation ───────────────────────────────────────────────────────────
+function mxActivate() {
+  if (!mxVuActive) {
+    mxVuActive = true;
+    requestAnimationFrame(mxVuLoop);
+  }
+}
+
+// ── Persistência ─────────────────────────────────────────────────────────────
+const MX_STORAGE_KEY = 'sb_mixer_v1';
+let _mxSavedConfig = null;  // fonte-verdade lida do localStorage; usada por mxBootInput/mxBootOutputs
+let _mxPending     = null;  // devices a aplicar após enumeração
+
+function mxSaveState() {
+  const state = { inputs: {}, outputs: {}, inputDevices: {} };
+
+  for (const k of MX_INPUTS) {
+    const inp = mxIn[k];
+    const sc  = _mxSavedConfig?.inputs?.[k];
+    state.inputs[k] = {
+      level:  inp ? inp.level  : (sc?.level  ?? 80),
+      muted:  inp ? inp.muted  : (sc?.muted  ?? false),
+      routes: inp ? [...inp.routes] : (sc?.routes ?? ['A1']),
+    };
+  }
+  state.inputDevices.mic  = document.getElementById('micDevSel')?.value  || '';
+  state.inputDevices.chat = document.getElementById('chatDevSel')?.value || '';
+
+  for (const k of MX_OUTPUTS) {
+    const out = mxOut[k];
+    const sc  = _mxSavedConfig?.outputs?.[k];
+    state.outputs[k] = {
+      level:    out ? out.level    : (sc?.level    ?? 80),
+      muted:    out ? out.muted    : (sc?.muted    ?? false),
+      deviceId: out ? out.deviceId : (sc?.deviceId ?? (k === 'A1' ? 'default' : '')),
+    };
+  }
+  _mxSavedConfig = state;
+  localStorage.setItem(MX_STORAGE_KEY, JSON.stringify(state));
+}
+
+function mxLoadState() {
+  let state;
+  try { state = JSON.parse(localStorage.getItem(MX_STORAGE_KEY) || 'null'); } catch {}
+  if (!state) return;
+
+  // Armazena como config base — mxBootInput/mxBootOutputs lerão daqui
+  _mxSavedConfig = state;
+
+  // Restaura apenas a UI (sem inicializar o engine ainda)
+  for (const k of MX_INPUTS) {
+    const s = state.inputs?.[k]; if (!s) continue;
+    const fader = document.querySelector('#strip-' + k + ' .fader-input');
+    if (fader) fader.value = s.level;
+    const fval = document.getElementById('fval-in-' + k);
+    if (fval) fval.textContent = s.level;
+    const muteBtn = document.getElementById('mute-in-' + k);
+    if (muteBtn && s.muted) { muteBtn.classList.add('muted'); muteBtn.textContent = 'Muted'; }
+    const savedRoutes = new Set(s.routes ?? ['A1']);
+    document.querySelectorAll('#routes-' + k + ' .route-btn').forEach(btn => {
+      const outKey = btn.textContent.trim();
+      const on = savedRoutes.has(outKey);
+      btn.classList.toggle('on-phys', on && !outKey.startsWith('B'));
+      btn.classList.toggle('on-virt', on &&  outKey.startsWith('B'));
+    });
+  }
+
+  for (const k of MX_OUTPUTS) {
+    const s = state.outputs?.[k]; if (!s) continue;
+    const fader = document.querySelector('#strip-' + k + ' .fader-input');
+    if (fader) fader.value = s.level;
+    const fval = document.getElementById('fval-out-' + k);
+    if (fval) fval.textContent = s.level;
+    const muteBtn = document.getElementById('mute-out-' + k);
+    if (muteBtn && s.muted) { muteBtn.classList.add('muted'); muteBtn.textContent = 'Muted'; }
+  }
+
+  // Guarda dispositivos para aplicar após enumeração
+  _mxPending = {
+    outputDevices: Object.fromEntries(
+      ['A1','A2','A3'].map(k => [k, state.outputs?.[k]?.deviceId || ''])
+    ),
+    micDeviceId:  state.inputDevices?.mic  || '',
+    chatDeviceId: state.inputDevices?.chat || '',
+  };
+}
+
+async function mxApplyPendingLoad() {
+  if (!_mxPending) return;
+  const { outputDevices, micDeviceId, chatDeviceId } = _mxPending;
+  _mxPending = null;
+
+  // Restaura apenas os dropdowns — outputs bootam lazily quando a primeira fonte conectar
+  // (mxBootOutputs lê _mxSavedConfig e aplica o deviceId salvo via outCtx.setSinkId)
+  for (const [key, deviceId] of Object.entries(outputDevices)) {
+    if (!deviceId) continue;
+    const sel = document.getElementById('outDev' + key);
+    if (sel) sel.value = deviceId;
+  }
+
+  // Auto-reconnect mic
+  if (micDeviceId) {
+    const sel = document.getElementById('micDevSel');
+    if (sel) sel.value = micDeviceId;
+    await mxConnectMic(micDeviceId);
+  }
+
+  // Auto-reconnect chat
+  if (chatDeviceId) {
+    const sel = document.getElementById('chatDevSel');
+    if (sel) sel.value = chatDeviceId;
+    await mxConnectChat(chatDeviceId);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+function mxInit() {
+  mxBuildRouteButtons();
+  mxLoadState();          // restore UI + schedule device reconnects
+  mxEnumerateDevices();   // populates selects, then calls mxApplyPendingLoad
+  navigator.mediaDevices.addEventListener('devicechange', mxEnumerateDevices);
+}
 </script>
 </body>
 </html>

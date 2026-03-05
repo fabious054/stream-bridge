@@ -211,12 +211,23 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration:  false,
       webSecurity: true,
+      autoplayPolicy: 'no-user-gesture-required',
     },
     icon: path.join(__dirname, 'assets', 'icon.png'),
     show: false,
   });
 
   mainWindow.loadFile('app.html');
+
+  // Allow audio autoplay and speaker-selection (required for setSinkId)
+  // Allow audio autoplay and speaker-selection (required for setSinkId)
+  const ALLOWED_PERMISSIONS = ['media', 'audioCapture', 'speaker-selection', 'microphone', 'display-capture'];
+  mainWindow.webContents.session.setPermissionRequestHandler((_wc, permission, callback) => {
+    callback(ALLOWED_PERMISSIONS.includes(permission));
+  });
+  mainWindow.webContents.session.setPermissionCheckHandler((_wc, permission) => {
+    return ALLOWED_PERMISSIONS.includes(permission);
+  });
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -307,6 +318,9 @@ ipcMain.on('win:maximize', () => {
 });
 ipcMain.on('win:close', () => mainWindow?.hide());
 ipcMain.on('win:quit',  () => { app.isQuiting = true; app.quit(); });
+
+// Allow AudioContext and media elements to play without user gesture
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
