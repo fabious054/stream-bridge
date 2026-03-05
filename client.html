@@ -554,37 +554,35 @@ input[type=text] {
   background: var(--accent);
 }
 
-/* Camera position grid */
-.cam-pos-grid {
+
+/* Control buttons in sidebar */
+.ctrl-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 2px;
-  width: 66px;
-  aspect-ratio: 16/9;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  overflow: hidden;
-  background: var(--border);
+  gap: 0.35rem;
 }
-.cam-pos-btn {
-  background: var(--s2); border: none; cursor: pointer;
-  color: var(--muted); font-size: 0.6rem; transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center;
-}
-.cam-pos-btn:hover { background: rgba(96,205,255,0.08); color: var(--text); }
-.cam-pos-btn.selected { background: rgba(96,205,255,0.15); color: var(--accent); }
 
-/* Camera size buttons */
-.cam-size-row { display: flex; gap: 3px; }
-.cam-size-btn {
-  flex: 1; padding: 0.25rem; background: var(--s2); border: 1px solid var(--border);
-  border-radius: 4px; color: var(--muted); font-size: 0.6rem; cursor: pointer;
-  font-family: var(--mono); transition: all 0.15s; text-align: center;
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.3rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
-.cam-size-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(79,195,247,0.04); }
-.cam-size-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(96,205,255,0.07); }
+.ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ctrl-btn.active { border-color: rgba(96,205,255,0.4); color: var(--accent); background: rgba(96,205,255,0.07); }
+.ctrl-btn.off    { border-color: rgba(241,112,122,0.4); color: var(--red);    background: rgba(241,112,122,0.07); }
 
 /* OBS Tip */
 .obs-tip {
@@ -733,18 +731,6 @@ body.obs-mode #localVideo {
       </div>
 
       <div class="video-bottom-bar" id="mediaBar" style="display:none">
-        <!-- Broadcaster controls -->
-        <div id="broadcasterControls" style="display:flex;gap:0.4rem;display:none">
-          <button class="media-btn" id="btnMic" title="Microfone" onclick="toggleMic()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-          </button>
-          <button class="media-btn" id="btnCam" title="Câmera" onclick="toggleCam()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
-          </button>
-          <button class="media-btn" id="btnScreen" title="Compartilhar tela" onclick="toggleScreen()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-          </button>
-        </div>
         <div class="spacer"></div>
         <span id="peerCountLabel" style="font-family:var(--mono);font-size:0.6rem;color:rgba(255,255,255,0.5)"></span>
       </div>
@@ -753,6 +739,29 @@ body.obs-mode #localVideo {
 
   <!-- Sidebar -->
   <div class="sidebar">
+
+    <!-- Broadcaster controls -->
+    <div class="sidebar-section" id="ctrlSection" style="display:none">
+      <div class="sidebar-title">Controles</div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn" id="ctrlMic" onclick="toggleMic()" title="Microfone">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+          Mic
+        </button>
+        <button class="ctrl-btn" id="ctrlCam" onclick="toggleCamSidebar()" title="Câmera">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+          Cam
+        </button>
+        <button class="ctrl-btn" id="ctrlScreen" onclick="toggleScreenSidebar()" title="Tela">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Tela
+        </button>
+        <button class="ctrl-btn" id="ctrlSwap" onclick="swapScreen()" title="Trocar janela compartilhada">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+          Trocar
+        </button>
+      </div>
+    </div>
 
     <!-- Connection status -->
     <div class="sidebar-section">
@@ -783,7 +792,8 @@ body.obs-mode #localVideo {
         <button class="q-btn" onclick="setQuality('480p')" data-q="480p">480p<br><span style="opacity:0.6;font-size:0.52rem">1 Mbps</span></button>
         <button class="q-btn" onclick="setQuality('720p')" data-q="720p">720p<br><span style="opacity:0.6;font-size:0.52rem">2.5 Mbps</span></button>
         <button class="q-btn selected" onclick="setQuality('1080p')" data-q="1080p">1080p<br><span style="opacity:0.6;font-size:0.52rem">8 Mbps</span></button>
-        <button class="q-btn" onclick="setQuality('screen')" data-q="screen">Tela<br><span style="opacity:0.6;font-size:0.52rem">8 Mbps</span></button>
+        <button class="q-btn" onclick="setQuality('screen')" data-q="screen">Tela<br><span style="opacity:0.6;font-size:0.52rem">15 Mbps</span></button>
+        <button class="q-btn" onclick="setQuality('game')" data-q="game" style="grid-column:span 2">Jogo<br><span style="opacity:0.6;font-size:0.52rem">20 Mbps · 1080p 60fps otimizado</span></button>
       </div>
     </div>
 
@@ -793,6 +803,10 @@ body.obs-mode #localVideo {
       <select class="audio-select" id="audioSelect" onchange="onAudioDeviceChange()">
         <option value="">Padrão do sistema</option>
       </select>
+      <div style="margin-top:0.5rem">
+        <div id="audioMeterBars" style="display:flex;gap:2px;align-items:flex-end;height:18px"></div>
+        <div id="audioMeterLabel" style="font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.2rem">Sem sinal</div>
+      </div>
     </div>
 
     <!-- Camera overlay (broadcaster only) -->
@@ -818,26 +832,6 @@ body.obs-mode #localVideo {
         <div class="cam-status-row">
           <span id="camStatusDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0"></span>
           <span id="camStatusText">Câmera inativa</span>
-        </div>
-
-        <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-top:0.6rem">
-          <div>
-            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.1em">Posição</div>
-            <div class="cam-pos-grid">
-              <button class="cam-pos-btn selected" data-pos="top-left"     onclick="setCamPos('top-left')">↖</button>
-              <button class="cam-pos-btn"          data-pos="top-right"    onclick="setCamPos('top-right')">↗</button>
-              <button class="cam-pos-btn"          data-pos="bottom-left"  onclick="setCamPos('bottom-left')">↙</button>
-              <button class="cam-pos-btn"          data-pos="bottom-right" onclick="setCamPos('bottom-right')">↘</button>
-            </div>
-          </div>
-          <div style="flex:1">
-            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.1em">Tamanho</div>
-            <div class="cam-size-row">
-              <button class="cam-size-btn selected" data-size="small"  onclick="setCamSize('small')">P</button>
-              <button class="cam-size-btn"          data-size="medium" onclick="setCamSize('medium')">M</button>
-              <button class="cam-size-btn"          data-size="large"  onclick="setCamSize('large')">G</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -931,6 +925,7 @@ function setRole(r) {
   role = r;
   document.getElementById('roleBroadcaster').classList.toggle('active', r === 'broadcaster');
   document.getElementById('roleViewer').classList.toggle('active', r === 'viewer');
+  document.getElementById('ctrlSection').style.display     = r === 'broadcaster' ? '' : 'none';
   document.getElementById('qualitySection').style.display  = r === 'broadcaster' ? '' : 'none';
   document.getElementById('audioSection').style.display    = r === 'broadcaster' ? '' : 'none';
   document.getElementById('cameraSection').style.display   = r === 'broadcaster' ? '' : 'none';
@@ -938,10 +933,27 @@ function setRole(r) {
   updateOBSUrl();
 }
 
-function setQuality(q) {
+async function setQuality(q) {
+  const oldPreset = QUALITY_PRESETS[qualityKey];
+  const newPreset = QUALITY_PRESETS[q];
   qualityKey = q;
   document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === q));
-  if (localStream) restartCapture();
+  if (!localStream) return;
+
+  if (oldPreset.screen) {
+    // Already sharing screen — never interrupt it regardless of preset chosen.
+    // Quality buttons only control bitrate while screen share is active.
+    for (const pc of Object.values(peers)) {
+      pc.getSenders().forEach(s => { if (s.track) applyBitrateToSender(s, s.track.kind); });
+    }
+    log(`Bitrate: ${Math.round(newPreset.bitrate/1_000_000)}Mbps (tela mantida)`, 'info');
+  } else if (newPreset.screen) {
+    // Camera → Screen: open screen picker
+    await restartCapture();
+  } else {
+    // Camera → Camera: restart to apply new resolution/framerate
+    await restartCapture();
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -994,6 +1006,7 @@ function disconnect() {
 }
 
 function cleanupAll() {
+  stopAudioMeter();
   stopCamBroadcast();
   for (const pc of Object.values(peers)) pc.close();
   peers = {};
@@ -1048,7 +1061,10 @@ async function handleSignal(msg) {
     case 'offer': {
       if (role !== 'viewer') break;
       log(`Oferta recebida de ${msg.from}`, 'info');
-      const pc = createPC(msg.from);
+      // Re-use existing PC for the same peer (renegotiation after replaceTrack/restart).
+      // Creating a new PC would permanently destroy the old one and force a full reconnect.
+      const existing = peers[msg.from];
+      const pc = (existing && existing.signalingState !== 'closed') ? existing : createPC(msg.from);
       await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
@@ -1103,7 +1119,6 @@ function createPC(remotePeerId) {
       setStatus('P2P conectado ✓', 'connected');
       document.getElementById('liveBadge').classList.add('visible');
       document.getElementById('mediaBar').style.display = 'flex';
-      document.getElementById('broadcasterControls').style.display = role === 'broadcaster' ? 'flex' : 'none';
       startStatsMonitor(pc);
     }
     if (pc.iceConnectionState === 'failed') {
@@ -1116,9 +1131,16 @@ function createPC(remotePeerId) {
     log(`Track recebida: ${e.track.kind}`, 'success');
     const rv = document.getElementById('remoteVideo');
     if (!rv.srcObject) rv.srcObject = new MediaStream();
-    rv.srcObject.addTrack(e.track);
+    // Remove any stale ended tracks of the same kind — a track in 'ended' state
+    // cannot go back to 'live', so accumulating them blocks playback resumption.
+    rv.srcObject.getTracks()
+      .filter(t => t.kind === e.track.kind && t.readyState === 'ended')
+      .forEach(t => rv.srcObject.removeTrack(t));
+    if (!rv.srcObject.getTrackById(e.track.id)) rv.srcObject.addTrack(e.track);
     rv.style.display = 'block';
     document.getElementById('noStream').style.display = 'none';
+    // Resume playback — the element may have paused when the previous track ended.
+    rv.play().catch(() => {});
   };
 
   // Re-apply bitrate once negotiation is done (setParameters is reliable post-connection)
@@ -1201,15 +1223,14 @@ async function swapAudioTrack() {
   try {
     const newStream = await navigator.mediaDevices.getUserMedia({ audio: constraints, video: false });
     const newTrack  = newStream.getAudioTracks()[0];
-    // Replace in localStream
     const oldTrack = localStream.getAudioTracks()[0];
-    if (oldTrack) { localStream.removeTrack(oldTrack); oldTrack.stop(); }
     localStream.addTrack(newTrack);
-    // Replace in all active peer connections
+    // Replace in peer connections BEFORE stopping old track
     for (const pc of Object.values(peers)) {
       const sender = pc.getSenders().find(s => s.track?.kind === 'audio');
       if (sender) await sender.replaceTrack(newTrack);
     }
+    if (oldTrack) { localStream.removeTrack(oldTrack); oldTrack.stop(); }
     log('Microfone alterado sem interrupção da tela', 'success');
   } catch(e) {
     log(`Erro ao trocar microfone: ${e.message}`, 'error');
@@ -1386,9 +1407,14 @@ function stopCamBroadcast() {
 async function onCamOverlayToggle() {
   camOverlayActive = document.getElementById('camOverlayToggle').checked;
   document.getElementById('camOverlayControls').style.display = camOverlayActive ? '' : 'none';
+  updateCtrlBtn('ctrlCam', camOverlayActive);
   if (camOverlayActive) {
-    await startCameraPreview(document.getElementById('cameraSelect').value);
-    if (ws?.readyState === WebSocket.OPEN) await startCamBroadcast();
+    if (ws?.readyState === WebSocket.OPEN) {
+      // Go straight to broadcast — no separate preview step needed
+      await startCamBroadcast();
+    } else {
+      await startCameraPreview(document.getElementById('cameraSelect').value);
+    }
   } else {
     stopCamBroadcast();
     if (camPreviewStream) { camPreviewStream.getTracks().forEach(t => t.stop()); camPreviewStream = null; }
@@ -1398,20 +1424,14 @@ async function onCamOverlayToggle() {
 
 async function onCameraDeviceChange() {
   if (!camOverlayActive) return;
-  if (wsCam?.readyState === WebSocket.OPEN) {
-    await startCamBroadcast(); // restarts with new device
+  // Check main WS (not wsCam) — wsCam may be closed mid-restart
+  if (ws?.readyState === WebSocket.OPEN) {
+    await startCamBroadcast();
   } else {
     await startCameraPreview(document.getElementById('cameraSelect').value);
   }
 }
 
-function setCamPos(pos) {
-  document.querySelectorAll('.cam-pos-btn').forEach(b => b.classList.toggle('selected', b.dataset.pos === pos));
-}
-
-function setCamSize(size) {
-  document.querySelectorAll('.cam-size-btn').forEach(b => b.classList.toggle('selected', b.dataset.size === size));
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA CAPTURE
@@ -1487,6 +1507,7 @@ async function startCapture() {
     lv.style.display = 'block';
     document.getElementById('noStream').style.display = 'none';
 
+    startAudioMeter(localStream);
     log(`Captura iniciada: ${preset.width}×${preset.height} @${preset.frameRate}fps`, 'success');
 
   } catch (err) {
@@ -1496,15 +1517,39 @@ async function startCapture() {
 }
 
 async function restartCapture() {
-  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  // Save old tracks but DO NOT stop them yet.
+  // Stopping before replaceTrack fires 'ended' on the OBS/receiver side,
+  // which causes OBS to detach its video renderer before the new track arrives.
+  const oldTracks = localStream ? [...localStream.getTracks()] : [];
+  localStream = null;
+
   await startCapture();
-  // Replace tracks in all active PCs
-  for (const pc of Object.values(peers)) {
+
+  // Replace tracks and send a fresh offer to each peer so their renderer resets.
+  // replaceTrack alone is not enough when the remote track object has already entered
+  // 'ended' state — renegotiation forces the receiver to bind to the new track source.
+  for (const [peerId, pc] of Object.entries(peers)) {
     for (const sender of pc.getSenders()) {
-      const newTrack = localStream.getTracks().find(t => t.kind === sender.track?.kind);
-      if (newTrack) sender.replaceTrack(newTrack);
+      const kind     = sender.track?.kind;
+      const newTrack = kind ? localStream.getTracks().find(t => t.kind === kind) : null;
+      if (newTrack) {
+        await sender.replaceTrack(newTrack);
+        applyBitrateToSender(sender, newTrack.kind);
+      }
+    }
+    // Re-offer only when signaling is stable (avoids conflicts)
+    if (pc.signalingState === 'stable') {
+      try {
+        const offer = await pc.createOffer({ voiceActivityDetection: false, offerToReceiveAudio: false, offerToReceiveVideo: false });
+        offer.sdp = setBandwidthSDP(offer.sdp, qualityKey);
+        await pc.setLocalDescription(offer);
+        send({ type: 'offer', to: peerId, sdp: pc.localDescription });
+      } catch(e) { log('Re-offer: ' + e.message, 'warn'); }
     }
   }
+
+  // Stop old tracks AFTER replacement and re-offer — receiver never sees 'ended' prematurely
+  oldTracks.forEach(t => t.stop());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1568,45 +1613,114 @@ function setBandwidthSDP(sdp, qualityKey) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA TOGGLE CONTROLS
 // ─────────────────────────────────────────────────────────────────────────────
+function updateCtrlBtn(id, active, offState = false) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.classList.toggle('active', active && !offState);
+  btn.classList.toggle('off', offState);
+}
+
 function toggleMic() {
   if (!localStream) return;
   micMuted = !micMuted;
   localStream.getAudioTracks().forEach(t => t.enabled = !micMuted);
-  document.getElementById('btnMic').classList.toggle('off', micMuted);
+  updateCtrlBtn('ctrlMic', false, micMuted);
   log(micMuted ? 'Microfone silenciado.' : 'Microfone ativado.', micMuted ? 'warn' : 'success');
 }
 
-function toggleCam() {
-  if (!localStream) return;
-  camOff = !camOff;
-  localStream.getVideoTracks().forEach(t => t.enabled = !camOff);
-  document.getElementById('btnCam').classList.toggle('off', camOff);
-  log(camOff ? 'Câmera desligada.' : 'Câmera ligada.', camOff ? 'warn' : 'success');
+function toggleCamSidebar() {
+  const toggle = document.getElementById('camOverlayToggle');
+  if (!toggle) return;
+  toggle.checked = !toggle.checked;
+  onCamOverlayToggle();
 }
 
-async function toggleScreen() {
-  if (screenOn) {
-    screenOn = false;
-    document.getElementById('btnScreen').classList.remove('off');
+async function toggleScreenSidebar() {
+  const preset = QUALITY_PRESETS[qualityKey];
+  if (preset?.screen && localStream) {
+    // Switch back to camera
+    const prevKey = qualityKey;
+    qualityKey = '1080p';
+    document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === qualityKey));
     await restartCapture();
+    screenOn = false;
+    updateCtrlBtn('ctrlScreen', false, false);
+    updateCtrlBtn('ctrlSwap', false, false);
     log('Voltou para câmera.', 'info');
   } else {
     const prevKey = qualityKey;
     qualityKey = 'screen';
+    document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === 'screen'));
     try {
       await restartCapture();
       screenOn = true;
-      document.getElementById('btnScreen').classList.add('off');
+      updateCtrlBtn('ctrlScreen', true, false);
+      updateCtrlBtn('ctrlSwap', true, false);
       log('Compartilhando tela.', 'success');
       localStream.getVideoTracks()[0].onended = async () => {
         screenOn = false;
         qualityKey = prevKey;
-        document.getElementById('btnScreen').classList.remove('off');
+        document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === prevKey));
+        updateCtrlBtn('ctrlScreen', false, false);
+        updateCtrlBtn('ctrlSwap', false, false);
         await restartCapture();
         log('Compartilhamento de tela encerrado.', 'info');
       };
     } catch {
       qualityKey = prevKey;
+      document.querySelectorAll('.q-btn').forEach(b => b.classList.toggle('selected', b.dataset.q === prevKey));
+    }
+  }
+}
+
+async function swapScreen() {
+  // Replace only the video track — no disconnect, no restart of audio
+  if (!localStream || !QUALITY_PRESETS[qualityKey]?.screen) {
+    log('Ative o compartilhamento de tela primeiro.', 'warn');
+    return;
+  }
+  try {
+    const preset = QUALITY_PRESETS[qualityKey];
+    const newScreenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        width:     { ideal: preset.width,     max: preset.width     },
+        height:    { ideal: preset.height,    max: preset.height    },
+        frameRate: { ideal: preset.frameRate, max: preset.frameRate },
+        cursor:    'always',
+      },
+      audio: false,
+    });
+    const newTrack = newScreenStream.getVideoTracks()[0];
+    newTrack.contentHint = 'motion';
+
+    // Replace in localStream (keep old track alive until after replaceTrack)
+    const oldTrack = localStream.getVideoTracks()[0];
+    localStream.addTrack(newTrack);
+
+    // Replace in all peer connections BEFORE stopping old track
+    for (const pc of Object.values(peers)) {
+      const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) await sender.replaceTrack(newTrack);
+    }
+
+    // Now it's safe to stop old track — receiver already has the new one
+    if (oldTrack) { localStream.removeTrack(oldTrack); oldTrack.stop(); }
+
+    // Update local preview
+    const lv = document.getElementById('localVideo');
+    if (lv) lv.srcObject = localStream;
+
+    newTrack.onended = async () => {
+      screenOn = false;
+      updateCtrlBtn('ctrlScreen', false, false);
+      updateCtrlBtn('ctrlSwap', false, false);
+      log('Tela encerrada pelo sistema.', 'warn');
+    };
+
+    log('Tela trocada sem interrupção.', 'success');
+  } catch(e) {
+    if (e.name !== 'AbortError' && e.name !== 'NotAllowedError') {
+      log(`Erro ao trocar tela: ${e.message}`, 'error');
     }
   }
 }
@@ -1674,6 +1788,76 @@ function startStatsMonitor(pc) {
 
     } catch(e) {}
   }, 1500);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDIO METER
+// ─────────────────────────────────────────────────────────────────────────────
+let _meterCtx = null, _meterRaf = null;
+const METER_BARS = 28;
+
+function _initMeterBars() {
+  const c = document.getElementById('audioMeterBars');
+  if (!c) return;
+  c.innerHTML = '';
+  for (let i = 0; i < METER_BARS; i++) {
+    const b = document.createElement('div');
+    b.style.cssText = 'width:5px;border-radius:2px 2px 0 0;background:var(--border);height:3px;flex-shrink:0;transition:height 0.04s';
+    c.appendChild(b);
+  }
+}
+
+function startAudioMeter(stream) {
+  stopAudioMeter();
+  _initMeterBars();
+  const audioTracks = stream?.getAudioTracks() ?? [];
+  if (!audioTracks.length) {
+    const lbl = document.getElementById('audioMeterLabel');
+    if (lbl) lbl.textContent = 'Sem faixa de áudio';
+    return;
+  }
+  try {
+    _meterCtx       = new AudioContext();
+    const src       = _meterCtx.createMediaStreamSource(stream);
+    const analyser  = _meterCtx.createAnalyser();
+    analyser.fftSize = 64;
+    src.connect(analyser);
+    const data  = new Uint8Array(analyser.frequencyBinCount);
+    const bars  = document.getElementById('audioMeterBars')?.children;
+    const label = document.getElementById('audioMeterLabel');
+
+    function draw() {
+      _meterRaf = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(data);
+      let peak = 0;
+      for (let i = 0; i < data.length; i++) peak = Math.max(peak, data[i]);
+      if (bars) {
+        for (let i = 0; i < METER_BARS; i++) {
+          const v = data[i] || 0;
+          const h = Math.max(3, Math.round((v / 255) * 18));
+          const p = v / 255;
+          bars[i].style.height     = h + 'px';
+          bars[i].style.background = v > 4 ? (p > 0.75 ? 'var(--red)' : p > 0.4 ? 'var(--accent)' : 'var(--green)') : 'var(--border)';
+        }
+      }
+      if (label) {
+        const db = peak > 0 ? Math.round(20 * Math.log10(peak / 255)) : -Infinity;
+        label.textContent = peak > 4 ? `${db} dB` : 'Silêncio';
+      }
+    }
+    draw();
+  } catch(e) {
+    const lbl = document.getElementById('audioMeterLabel');
+    if (lbl) lbl.textContent = 'Erro ao ler áudio';
+  }
+}
+
+function stopAudioMeter() {
+  if (_meterRaf) { cancelAnimationFrame(_meterRaf); _meterRaf = null; }
+  if (_meterCtx) { _meterCtx.close(); _meterCtx = null; }
+  _initMeterBars();
+  const lbl = document.getElementById('audioMeterLabel');
+  if (lbl) lbl.textContent = 'Sem sinal';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
