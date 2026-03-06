@@ -1131,7 +1131,9 @@ input::placeholder { color: var(--muted); opacity: 0.6; }
         <!-- MÚSICA -->
         <div class="strip" id="strip-music">
           <div class="strip-label">Música</div>
-          <button class="strip-src-btn" id="musicBtn" onclick="mxPickMusic()">Selecionar arquivo</button>
+          <select class="strip-dev-sel" id="musicDevSel" onchange="mxConnectMusic(this.value)">
+            <option value="">-- selecionar --</option>
+          </select>
           <div class="vu-wrap">
             <div class="vu-bar"><div class="vu-fill" id="vu-in-music-L"></div></div>
             <div class="vu-bar"><div class="vu-fill" id="vu-in-music-R"></div></div>
@@ -1921,31 +1923,17 @@ function mxToggleRoute(inKey, outKey, btn) {
 }
 
 // ── Source connections ────────────────────────────────────────────────────────
-function mxPickMusic() {
-  const picker = document.createElement('input');
-  picker.type = 'file';
-  picker.accept = 'audio/*';
-  picker.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const ctx = mxEnsureCtx();
-      const inp = mxBootInput('music');
-      if (inp.node) { try { inp.node.disconnect(); } catch {} }
-      const url = URL.createObjectURL(file);
-      const el  = new Audio(url);
-      el.loop   = true;
-      el.volume = 1;
-      const src = ctx.createMediaElementSource(el);
-      src.connect(inp.gain);
-      inp.node = src;
-      el.play().catch(() => {});
-      const btn = document.getElementById('musicBtn');
-      if (btn) { btn.textContent = file.name.slice(0, 20); btn.classList.add('connected'); }
-      toast('Música carregada!');
-    } catch (e2) { toast('Erro: ' + e2.message); }
-  };
-  picker.click();
+async function mxConnectMusic(deviceId) {
+  if (!deviceId) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: { exact: deviceId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+    mxAttachStream('music', stream);
+    document.getElementById('musicDevSel')?.classList.add('connected');
+    toast('Música conectada!');
+    mxSaveState();
+  } catch (e) { toast('Erro música: ' + e.message); }
 }
 
 async function mxConnectMic(deviceId) {
@@ -2005,7 +1993,7 @@ async function mxEnumerateDevices() {
     const ins  = devices.filter(d => d.kind === 'audioinput');
     const outs = devices.filter(d => d.kind === 'audiooutput');
 
-    ['micDevSel', 'chatDevSel'].forEach(id => {
+    ['musicDevSel', 'micDevSel', 'chatDevSel'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
       const cur = sel.value;
@@ -2120,6 +2108,7 @@ function mxSaveState() {
       routes: inp ? [...inp.routes] : (sc?.routes ?? ['A1']),
     };
   }
+  state.inputDevices.music = document.getElementById('musicDevSel')?.value || '';
   state.inputDevices.mic  = document.getElementById('micDevSel')?.value  || '';
   state.inputDevices.chat = document.getElementById('chatDevSel')?.value || '';
 
@@ -2177,14 +2166,15 @@ function mxLoadState() {
     outputDevices: Object.fromEntries(
       ['A1','A2','A3'].map(k => [k, state.outputs?.[k]?.deviceId || ''])
     ),
-    micDeviceId:  state.inputDevices?.mic  || '',
-    chatDeviceId: state.inputDevices?.chat || '',
+    musicDeviceId: state.inputDevices?.music || '',
+    micDeviceId:   state.inputDevices?.mic   || '',
+    chatDeviceId:  state.inputDevices?.chat  || '',
   };
 }
 
 async function mxApplyPendingLoad() {
   if (!_mxPending) return;
-  const { outputDevices, micDeviceId, chatDeviceId } = _mxPending;
+  const { outputDevices, musicDeviceId, micDeviceId, chatDeviceId } = _mxPending;
   _mxPending = null;
 
   // Restaura apenas os dropdowns — outputs bootam lazily quando a primeira fonte conectar
@@ -2193,6 +2183,13 @@ async function mxApplyPendingLoad() {
     if (!deviceId) continue;
     const sel = document.getElementById('outDev' + key);
     if (sel) sel.value = deviceId;
+  }
+
+  // Auto-reconnect music
+  if (musicDeviceId) {
+    const sel = document.getElementById('musicDevSel');
+    if (sel) sel.value = musicDeviceId;
+    await mxConnectMusic(musicDeviceId);
   }
 
   // Auto-reconnect mic
